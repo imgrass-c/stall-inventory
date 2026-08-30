@@ -32,6 +32,8 @@ export function formatTaiwanTime(timestamp, formatType = 'datetime') {
   if (formatType === 'date') {
     return `${year}-${month}-${day}`;
   } else if (formatType === 'time') {
+    return `${hour}:${minute}:${second}`;
+  } else if (formatType === 'time_short') {
     return `${hour}:${minute}`;
   } else if (formatType === 'month') {
     return `${year}-${month}`;
