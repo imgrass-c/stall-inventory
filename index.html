@@ -2,13 +2,23 @@
 <html lang="zh-TW">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎪</text></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>市集擺攤庫存與 POS 系統</title>
-    <!-- Google Identity Services (GIS) SDK -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>感情失敗之友會營運後臺 | STALL POS</title>
+    
+    <!-- Inter & JetBrains Mono Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- 獨立外置設定檔 -->
+    <script src="config.js" onerror="console.log('未偵測到外置 config.js，將使用系統內建設定')"></script>
+
+    <!-- Firebase v10 Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   </head>
-  <body class="bg-slate-900 text-slate-100 min-h-screen select-none antialiased">
+  <body class="bg-surface-50 text-slate-900 min-h-screen select-none antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

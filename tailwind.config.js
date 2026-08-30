@@ -7,14 +7,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        stall: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          900: '#0c4a6e',
+        accent: {
+          DEFAULT: '#F43F5E',
+          hover: '#E11D48',
+          light: '#FFF1F2',
+          border: '#FECDD3'
+        },
+        surface: {
+          50: '#F8FAFC',
+          100: '#F1F5F9',
+          200: '#E2E8F0',
+          300: '#CBD5E1',
         }
+      },
+      boxShadow: {
+        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
+        'drawer': '0 -10px 25px -5px rgba(0, 0, 0, 0.15)',
+        'btn-touch': '0 2px 4px rgba(0,0,0,0.06)'
       }
     },
   },
