@@ -96,7 +96,7 @@ export default function TransferView({ inventory, onTransfer, user }) {
       {/* 頂部標題與活動管理按鈕 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">雙向庫存調撥與出攤</h2>
+          <h2 className="text-xl font-black text-slate-900 tracking-tight">市集控管與雙向調撥</h2>
           <p className="text-xs text-slate-400 font-bold">鎖定出攤活動、批次調撥衣服或活動結束一鍵撤攤</p>
         </div>
 

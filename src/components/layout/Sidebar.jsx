@@ -13,7 +13,7 @@ export default function Sidebar({
   const tabs = [
     { id: 'pos', name: '現場收銀', icon: Icons.Pos },
     { id: 'inventory', name: '即時庫存', icon: Icons.Inventory },
-    { id: 'transfer', name: '雙向調撥', icon: Icons.Transfer },
+    { id: 'transfer', name: '市集控管', icon: Icons.Transfer },
     { id: 'revenue', name: '營收分帳', icon: Icons.Revenue },
     { id: 'products', name: '商品建檔', icon: Icons.Products },
     { id: 'members', name: '成員審核', icon: Icons.Users, badge: pendingCount }

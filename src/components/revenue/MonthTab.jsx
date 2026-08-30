@@ -298,10 +298,14 @@ export default function MonthTab({
                         <Icons.Calendar className="w-3 h-3 text-slate-400 inline mr-1" />
                         <span>{d.date}</span>
                       </td>
-                      <td className="p-3 whitespace-nowrap">
-                        <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded text-[10px] font-black">
-                          {d.eventName}
-                        </span>
+                      <td className="p-3">
+                        <div className="flex flex-wrap gap-1 max-w-[180px]">
+                          {(d.events && d.events.length > 0 ? d.events : [d.eventName || "一般現場"]).map((evName, eIdx) => (
+                            <span key={eIdx} className="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md text-[10px] font-black whitespace-nowrap">
+                              {evName}
+                            </span>
+                          ))}
+                        </div>
                       </td>
                       <td className="p-3 text-center font-bold text-slate-800 font-mono">
                         {d.totalItems} 件

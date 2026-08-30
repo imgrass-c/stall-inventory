@@ -53,7 +53,7 @@ export default function RevenueView({
       if (!dailyMap[sDate]) {
         dailyMap[sDate] = {
           date: sDate,
-          eventName: sEvent,
+          eventNames: new Set(),
           totalOrders: 0,
           totalItems: 0,
           revenue: 0,
@@ -62,6 +62,7 @@ export default function RevenueView({
           cashRevenue: 0
         };
       }
+      dailyMap[sDate].eventNames.add(sEvent);
       dailyMap[sDate].totalOrders += 1;
       dailyMap[sDate].revenue += orderFinal;
       if (pMethod === '現金') dailyMap[sDate].cashRevenue += orderFinal;
@@ -114,7 +115,11 @@ export default function RevenueView({
 
     const profit = rev - cost;
     const margin = rev > 0 ? ((profit / rev) * 100).toFixed(1) : 0;
-    const dailyBreakdown = Object.values(dailyMap).sort((a, b) => b.date.localeCompare(a.date));
+    const dailyBreakdown = Object.values(dailyMap).map(d => ({
+      ...d,
+      events: Array.from(d.eventNames || []),
+      eventName: Array.from(d.eventNames || []).join(", ") || "一般現場"
+    })).sort((a, b) => b.date.localeCompare(a.date));
 
     return {
       date: salesList[0]?.date || formatTaiwanTime(new Date(), 'date'),

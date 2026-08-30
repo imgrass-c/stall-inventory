@@ -120,7 +120,11 @@ export default function EventManageModal({
                 <input
                   type="date"
                   value={startDate}
-                  onChange={e => setStartDate(e.target.value)}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setStartDate(val);
+                    if (!endDate || endDate < val) setEndDate(val);
+                  }}
                   className="w-full min-h-[40px] bg-white border border-slate-200 rounded-xl px-2 text-xs font-bold text-slate-700"
                 />
               </div>
