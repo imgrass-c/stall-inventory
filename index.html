@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>感情失敗之友會營運後臺 | STALL POS</title>
     
     <!-- Inter & JetBrains Mono Fonts -->
@@ -19,7 +22,13 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   </head>
   <body class="bg-surface-50 text-slate-900 min-h-screen select-none antialiased">
-    <div id="root"></div>
+    <div id="root">
+      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #F8FAFC; font-family: -apple-system, sans-serif; color: #64748B; font-size: 14px; font-weight: bold; gap: 8px;">
+        <div style="width: 32px; height: 32px; border: 3px solid #E2E8F0; border-top-color: #F43F5E; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+        <span>感情失敗之友會 系統載入中...</span>
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
