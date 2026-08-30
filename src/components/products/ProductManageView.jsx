@@ -21,6 +21,11 @@ export default function ProductManageView({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('全部');
 
+  // 目前登入建檔者名稱
+  const currentCreatorName = useMemo(() => {
+    return user?.name || (user?.email ? user.email.split('@')[0] : '攤位公家');
+  }, [user]);
+
   // 動態分類與主理人名單
   const [customCategories, setCustomCategories] = useState(() => {
     try {
@@ -42,12 +47,23 @@ export default function ProductManageView({
   const [category, setCategory] = useState('衣服');
   const [basePrice, setBasePrice] = useState(590);
   const [baseCost, setBaseCost] = useState(250);
-  const [defaultOwner, setDefaultOwner] = useState('攤位公家');
+  const [defaultOwner, setDefaultOwner] = useState(currentCreatorName);
   const [imageUrl, setImageUrl] = useState('');
   const [skus, setSkus] = useState([
-    { variant_name: 'Free Size', price: 590, cost: 250, home_qty: 20, owner: '攤位公家' }
+    { variant_name: 'Free Size', price: 590, cost: 250, home_qty: 20, owner: currentCreatorName }
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 當登入使用者變更時，自動更新預設主理人
+  useEffect(() => {
+    if (currentCreatorName) {
+      setDefaultOwner(currentCreatorName);
+      setSkus(prev => prev.map(s => ({
+        ...s,
+        owner: s.owner === '攤位公家' ? currentCreatorName : s.owner
+      })));
+    }
+  }, [currentCreatorName]);
 
   // 監聽成員名單，將已核准成員/編輯者動態加入主理人歸屬清單
   useEffect(() => {
@@ -57,11 +73,11 @@ export default function ProductManageView({
         .filter(u => u.status === '已核准')
         .map(u => u.name || u.email.split('@')[0]);
       
-      const mergedOwners = Array.from(new Set([...BASE_OWNERS, ...memberNames]));
+      const mergedOwners = Array.from(new Set([...BASE_OWNERS, currentCreatorName, ...memberNames]));
       setCustomOwners(mergedOwners);
     });
     return () => unsub();
-  }, []);
+  }, [currentCreatorName]);
 
   const allCategories = useMemo(() => {
     const set = new Set(['全部', ...customCategories]);
@@ -114,22 +130,32 @@ export default function ProductManageView({
     setShowNewOwnerInput(false);
   };
 
+  // 開啟建立 Modal 時初始化以目前建檔人為預設
+  const handleOpenAddModal = () => {
+    const creator = currentCreatorName;
+    setDefaultOwner(creator);
+    setSkus([{ variant_name: 'Free Size', price: basePrice, cost: baseCost, home_qty: 20, owner: creator }]);
+    setShowAddModal(true);
+  };
+
   // 一鍵帶入標準服飾尺寸
   const handleApplyClothingPreset = () => {
+    const creator = defaultOwner || currentCreatorName;
     const newSkus = DEFAULT_CLOTHING_SIZES.map(sz => ({
       variant_name: sz,
       price: Number(basePrice) || 590,
       cost: Number(baseCost) || 250,
       home_qty: 10,
-      owner: defaultOwner
+      owner: creator
     }));
     setSkus(newSkus);
   };
 
   const handleAddSkuRow = () => {
+    const creator = defaultOwner || currentCreatorName;
     setSkus(prev => [
       ...prev,
-      { variant_name: '', price: Number(basePrice) || 590, cost: Number(baseCost) || 250, home_qty: 10, owner: defaultOwner }
+      { variant_name: '', price: Number(basePrice) || 590, cost: Number(baseCost) || 250, home_qty: 10, owner: creator }
     ]);
   };
 
@@ -168,6 +194,7 @@ export default function ProductManageView({
         name: name.trim(),
         category: category.trim() || '衣服',
         image_url: imageUrl || '',
+        creator: currentCreatorName,
         created_at: new Date().toISOString()
       };
 
@@ -181,7 +208,7 @@ export default function ProductManageView({
         home_qty: Number(s.home_qty) || 0,
         stall_qty: 0,
         total_qty: Number(s.home_qty) || 0,
-        owner: s.owner || defaultOwner || '攤位公家',
+        owner: s.owner || defaultOwner || currentCreatorName || '攤位公家',
         created_at: new Date().toISOString()
       }));
 
@@ -189,7 +216,7 @@ export default function ProductManageView({
       setShowAddModal(false);
       setName('');
       setImageUrl('');
-      setSkus([{ variant_name: 'Free Size', price: 590, cost: 250, home_qty: 20, owner: '攤位公家' }]);
+      setSkus([{ variant_name: 'Free Size', price: 590, cost: 250, home_qty: 20, owner: currentCreatorName }]);
     } catch(err) {
       alert("建立商品失敗：" + err.message);
     } finally {
@@ -217,7 +244,7 @@ export default function ProductManageView({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight">商品名冊與服飾建檔</h2>
-          <p className="text-xs text-slate-400 font-bold">建立衣服圖樣、多尺寸規格與主理人分帳設定</p>
+          <p className="text-xs text-slate-400 font-bold">建立衣服圖樣、多尺寸規格，預設由登入建檔者為貨品歸屬主理人</p>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -230,7 +257,7 @@ export default function ProductManageView({
           </button>
 
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={handleOpenAddModal}
             className="flex-1 sm:flex-none min-h-[44px] px-5 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-2xl text-sm transition shadow-md flex items-center justify-center gap-2"
           >
             <Icons.Plus className="w-5 h-5 text-white" />
@@ -330,7 +357,7 @@ export default function ProductManageView({
       </div>
 
       {/* ========================================================================= */}
-      {/* 👕 建立新商品 / 服飾 Modal (支援自訂分類與主理人) */}
+      {/* 👕 建立新商品 / 服飾 Modal (支援自訂分類與預設目前建檔主理人) */}
       {/* ========================================================================= */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3.5 animate-in fade-in overflow-y-auto">
@@ -338,7 +365,9 @@ export default function ProductManageView({
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-base sm:text-lg font-black text-slate-900">建立新服飾 / 商品母檔</h3>
-                <p className="text-xs text-slate-400 font-bold">可設定款式、自訂分類、多尺寸與主理人歸屬</p>
+                <p className="text-xs text-slate-400 font-bold">
+                  預設歸屬建檔人：<span className="text-purple-700 font-black">【{currentCreatorName}】</span>
+                </p>
               </div>
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 p-1.5">
                 <Icons.Close className="w-5 h-5" />
@@ -438,9 +467,9 @@ export default function ProductManageView({
                     />
                   </div>
 
-                  {/* 貨品歸屬人員 (支援成員連動 + 自訂輸入) */}
+                  {/* 貨品歸屬人員 (預設目前登入建檔者) */}
                   <div>
-                    <span className="text-[10px] text-slate-400 font-bold block mb-1">貨品歸屬</span>
+                    <span className="text-[10px] text-slate-400 font-bold block mb-1">貨品歸屬主理人</span>
                     {showNewOwnerInput ? (
                       <div className="flex gap-1">
                         <input
@@ -497,9 +526,9 @@ export default function ProductManageView({
                     <button
                       type="button"
                       onClick={handleApplyClothingPreset}
-                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-black transition flex items-center gap-1 shadow-sm"
+                      className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-black transition flex items-center gap-1 shadow-sm"
                     >
-                      <Icons.Sparkles className="w-3.5 h-3.5" />
+                      <Icons.Sparkles className="w-3.5 h-3.5 text-white" />
                       <span>一鍵帶入服飾尺寸 (S~2XL)</span>
                     </button>
                     <button

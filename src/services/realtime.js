@@ -169,6 +169,18 @@ class RealtimeService {
     }
   }
 
+  async deleteEvent(eventId) {
+    if (this.isFirebaseReady && this.db) {
+      await this.db.collection('events_master').doc(eventId).delete();
+      return { success: true };
+    } else {
+      let events = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_EVENTS) || '[]');
+      events = events.filter(e => e.event_id !== eventId);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_EVENTS, JSON.stringify(events));
+      return { success: true };
+    }
+  }
+
   async addEventExpense(eventId, expenseItem) {
     const expense = sanitizeForFirestore({
       id: `EXP-${Date.now()}`,
@@ -297,7 +309,7 @@ class RealtimeService {
     }
   }
 
-  async clearAllTestData(options = { clearProducts: true, clearInventory: true, clearSales: true, clearEvents: false }) {
+  async clearAllTestData(options = { clearProducts: true, clearInventory: true, clearSales: true, clearEvents: true }) {
     if (options.clearProducts) localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, '[]');
     if (options.clearInventory) localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, '[]');
     if (options.clearSales) localStorage.setItem(STORAGE_KEYS.LOCAL_SALES, '[]');
@@ -561,7 +573,7 @@ class RealtimeService {
       originalTotal = 0,
       finalTotal = 0,
       operator = '現場收銀員',
-      channelType = 'market', // 'market' or 'online'
+      channelType = 'market',
       channelName = '市集現場',
       eventName = ''
     } = orderData;
@@ -570,7 +582,6 @@ class RealtimeService {
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const effectiveEventName = channelType === 'market' ? (eventName || channelName || '一般現場') : channelName;
 
-    // 清理每個品項，防範任何 undefined
     const sanitizedItems = items.map(item => ({
       skuId: String(item.skuId || ''),
       productId: String(item.productId || ''),

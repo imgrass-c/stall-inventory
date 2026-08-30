@@ -293,6 +293,7 @@ export default function TransferView({ inventory, onTransfer, user }) {
             if (res && res.success) setSelectedEventId(res.eventId);
           }}
           onAddExpense={(eId, exp) => realtime.addEventExpense(eId, exp)}
+          onDeleteEvent={(eId) => realtime.deleteEvent(eId)}
         />
       )}
 

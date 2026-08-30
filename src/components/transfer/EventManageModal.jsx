@@ -5,6 +5,7 @@ export default function EventManageModal({
   events,
   onClose,
   onCreateEvent,
+  onDeleteEvent,
   onAddExpense
 }) {
   const [showCreate, setShowCreate] = useState(false);
@@ -155,7 +156,7 @@ export default function EventManageModal({
           </form>
         )}
 
-        {/* 活動列表與追加支出按鈕 */}
+        {/* 活動列表與追加支出/刪除場次按鈕 */}
         <div className="space-y-3">
           <div className="text-xs font-black text-slate-700">現有出攤場次清單 ({events.length} 場)</div>
           
@@ -186,14 +187,32 @@ export default function EventManageModal({
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => setSelectedEventId(isSelectedForExp ? null : e.event_id)}
-                        className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-black transition flex items-center gap-1"
-                      >
-                        <Icons.Plus className="w-3.5 h-3.5" />
-                        <span>追加支出</span>
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedEventId(isSelectedForExp ? null : e.event_id)}
+                          className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-black transition flex items-center gap-1"
+                        >
+                          <Icons.Plus className="w-3.5 h-3.5" />
+                          <span>追加支出</span>
+                        </button>
+
+                        {/* 🌟 刪除活動場次按鈕 */}
+                        {onDeleteEvent && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`確定要刪除出攤活動【${e.name}】嗎？`)) {
+                                onDeleteEvent(e.event_id);
+                              }
+                            }}
+                            className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition"
+                            title="刪除此場次"
+                          >
+                            <Icons.Trash className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* 支出明細列表 */}
