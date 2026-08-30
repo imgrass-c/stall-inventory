@@ -10,8 +10,26 @@ export const STORAGE_KEYS = {
   LOCAL_INVENTORY: 'stall_local_inventory',
   LOCAL_SALES: 'stall_local_sales',
   LOCAL_USERS: 'stall_local_users',
-  LOCAL_EVENTS: 'stall_local_events'
+  LOCAL_EVENTS: 'stall_local_events',
+  LOCAL_CATEGORIES: 'stall_local_categories'
 };
+
+// 深度遞迴清理物件，徹底移除所有 undefined，防止 Firestore 報錯
+export function sanitizeForFirestore(obj) {
+  if (obj === undefined) return '';
+  if (obj === null) return '';
+  if (typeof obj === 'number') return isNaN(obj) ? 0 : obj;
+  if (typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(sanitizeForFirestore);
+  const res = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const val = obj[key];
+      res[key] = val === undefined ? '' : sanitizeForFirestore(val);
+    }
+  }
+  return res;
+}
 
 class RealtimeService {
   constructor() {
@@ -99,7 +117,7 @@ class RealtimeService {
   }
 
   // =========================================================================
-  //  出攤活動與場次管理 (Events & Expenses)
+  // 出攤活動與場次管理 (Events & Expenses)
   // =========================================================================
   async getEvents() {
     if (this.isFirebaseReady && this.db) {
@@ -129,16 +147,16 @@ class RealtimeService {
 
   async createEvent(eventData) {
     const eventId = eventData.event_id || `EVT-${Date.now()}`;
-    const payload = {
+    const payload = sanitizeForFirestore({
       event_id: eventId,
-      name: eventData.name.trim(),
+      name: eventData.name ? eventData.name.trim() : '未命名場次',
       start_date: eventData.start_date || '',
       end_date: eventData.end_date || '',
       booth_cost: Number(eventData.booth_cost) || 0,
       expenses: eventData.expenses || [],
       status: eventData.status || '進行中',
       created_at: new Date().toISOString()
-    };
+    });
 
     if (this.isFirebaseReady && this.db) {
       await this.db.collection('events_master').doc(eventId).set(payload, { merge: true });
@@ -152,13 +170,13 @@ class RealtimeService {
   }
 
   async addEventExpense(eventId, expenseItem) {
-    const expense = {
+    const expense = sanitizeForFirestore({
       id: `EXP-${Date.now()}`,
-      title: expenseItem.title.trim(),
+      title: expenseItem.title ? expenseItem.title.trim() : '雜支',
       amount: Number(expenseItem.amount) || 0,
       category: expenseItem.category || '臨時租借/耗材',
       date: new Date().toISOString()
-    };
+    });
 
     if (this.isFirebaseReady && this.db) {
       const ref = this.db.collection('events_master').doc(eventId);
@@ -179,7 +197,6 @@ class RealtimeService {
   }
 
   async closeEventAndReturnStock(eventId, eventName, operator) {
-    // 取得當前現場所有未售出的庫存，整批回補至倉庫，並將現場庫存歸零
     if (this.isFirebaseReady && this.db) {
       const snap = await this.db.collection('inventory_master').where('stall_qty', '>', 0).get();
       const batch = this.db.batch();
@@ -197,7 +214,7 @@ class RealtimeService {
         batch.update(this.db.collection('events_master').doc(eventId), {
           status: '已撤攤結算',
           closed_at: new Date().toISOString(),
-          closed_by: operator
+          closed_by: operator || '主理人'
         });
       }
       await batch.commit();
@@ -218,7 +235,7 @@ class RealtimeService {
       if (ev) {
         ev.status = '已撤攤結算';
         ev.closed_at = new Date().toISOString();
-        ev.closed_by = operator;
+        ev.closed_by = operator || '主理人';
         localStorage.setItem(STORAGE_KEYS.LOCAL_EVENTS, JSON.stringify(events));
       }
       return { success: true };
@@ -226,7 +243,7 @@ class RealtimeService {
   }
 
   // =========================================================================
-  //  商品與庫存管理 (Products & Inventory)
+  // 商品與庫存管理 (Products & Inventory)
   // =========================================================================
   async deleteInventoryItem(skuId) {
     if (this.isFirebaseReady && this.db) {
@@ -310,7 +327,7 @@ class RealtimeService {
   }
 
   // =========================================================================
-  //  登入與權限管理 (Auth & Users)
+  // 登入與權限管理 (Auth & Users)
   // =========================================================================
   async loginWithGooglePopup() {
     if (!this.isFirebaseReady || !this.auth) {
@@ -355,7 +372,7 @@ class RealtimeService {
         const userObj = {
           email: cleanEmail,
           name: data.name || name || cleanEmail.split('@')[0],
-          picture: data.picture || photo,
+          picture: data.picture || photo || '',
           role: data.role || '一般使用者',
           status: data.status || '待審核'
         };
@@ -419,11 +436,10 @@ class RealtimeService {
   async updateUserRole(email, newRole, newStatus) {
     const cleanEmail = email.trim().toLowerCase();
     if (this.isFirebaseReady && this.db) {
-      await this.db.collection('users').doc(cleanEmail).update({
-        role: newRole,
-        status: newStatus,
-        updated_at: new Date().toISOString()
-      });
+      const updateData = { updated_at: new Date().toISOString() };
+      if (newRole) updateData.role = newRole;
+      if (newStatus) updateData.status = newStatus;
+      await this.db.collection('users').doc(cleanEmail).update(updateData);
       return { success: true };
     } else {
       let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]');
@@ -502,12 +518,15 @@ class RealtimeService {
   }
 
   async addProductWithSkus(productData, skus) {
+    const cleanProduct = sanitizeForFirestore(productData);
+    const cleanSkus = skus.map(s => sanitizeForFirestore(s));
+
     if (this.isFirebaseReady && this.db) {
       const batch = this.db.batch();
-      const prodRef = this.db.collection('products').doc(productData.product_id);
-      batch.set(prodRef, productData, { merge: true });
+      const prodRef = this.db.collection('products').doc(cleanProduct.product_id);
+      batch.set(prodRef, cleanProduct, { merge: true });
 
-      skus.forEach(sku => {
+      cleanSkus.forEach(sku => {
         const invRef = this.db.collection('inventory_master').doc(sku.sku_id);
         batch.set(invRef, sku, { merge: true });
       });
@@ -518,12 +537,12 @@ class RealtimeService {
       let products = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_PRODUCTS) || '[]');
       let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
 
-      products = products.filter(p => p.product_id !== productData.product_id);
-      products.push(productData);
+      products = products.filter(p => p.product_id !== cleanProduct.product_id);
+      products.push(cleanProduct);
 
-      const newSkuIds = skus.map(s => s.sku_id);
+      const newSkuIds = cleanSkus.map(s => s.sku_id);
       inventory = inventory.filter(i => !newSkuIds.includes(i.sku_id));
-      inventory.push(...skus);
+      inventory.push(...cleanSkus);
 
       localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(products));
       localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
@@ -532,18 +551,18 @@ class RealtimeService {
   }
 
   // =========================================================================
-  //  收銀結帳 (支援市集扣現場、網路扣倉庫)
+  // 收銀結帳 (徹底消毒防 undefined)
   // =========================================================================
   async checkoutSale(orderData) {
     const {
-      items,
-      paymentMethod,
-      discountAmount,
-      originalTotal,
-      finalTotal,
-      operator,
-      channelType = 'market', // 'market' (市集現場) or 'online' (網路通路)
-      channelName = '市集現場', // '2026 大港開唱' or '7-11 賣貨便' or '官方網站' etc.
+      items = [],
+      paymentMethod = '現金',
+      discountAmount = 0,
+      originalTotal = 0,
+      finalTotal = 0,
+      operator = '現場收銀員',
+      channelType = 'market', // 'market' or 'online'
+      channelName = '市集現場',
       eventName = ''
     } = orderData;
 
@@ -551,38 +570,50 @@ class RealtimeService {
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const effectiveEventName = channelType === 'market' ? (eventName || channelName || '一般現場') : channelName;
 
-    const saleRecord = {
+    // 清理每個品項，防範任何 undefined
+    const sanitizedItems = items.map(item => ({
+      skuId: String(item.skuId || ''),
+      productId: String(item.productId || ''),
+      productName: String(item.productName || '未命名商品'),
+      variantName: String(item.variantName || '預設規格'),
+      price: Number(item.price) || 0,
+      cost: Number(item.cost) || 0,
+      owner: String(item.owner || '攤位公家'),
+      image: String(item.image || ''),
+      qty: Number(item.qty) || 1
+    }));
+
+    const saleRecord = sanitizeForFirestore({
       order_id: orderId,
       timestamp: now.toISOString(),
       date: now.toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-'),
-      items,
+      items: sanitizedItems,
       payment_method: paymentMethod,
-      total_amount: originalTotal,
-      discount_amount: discountAmount,
-      final_amount: finalTotal,
-      operator: operator || '現場收銀',
-      channelType,
-      channelName,
-      eventName: effectiveEventName,
+      total_amount: Number(originalTotal) || 0,
+      discount_amount: Number(discountAmount) || 0,
+      final_amount: Number(finalTotal) || 0,
+      operator: String(operator || '現場收銀員'),
+      channelType: String(channelType || 'market'),
+      channelName: String(channelName || '市集現場'),
+      eventName: String(effectiveEventName || '一般現場'),
       status: '已完成'
-    };
+    });
 
     if (this.isFirebaseReady && this.db) {
       const batch = this.db.batch();
       const saleRef = this.db.collection('sales_orders').doc(orderId);
       batch.set(saleRef, saleRecord);
 
-      for (const item of items) {
+      for (const item of sanitizedItems) {
+        if (!item.skuId) continue;
         const invRef = this.db.collection('inventory_master').doc(item.skuId);
         if (channelType === 'online') {
-          // 網路販售：扣除「家內/倉庫庫存」
           batch.update(invRef, {
             home_qty: window.firebase.firestore.FieldValue.increment(-item.qty),
             total_qty: window.firebase.firestore.FieldValue.increment(-item.qty),
             updated_at: new Date().toISOString()
           });
         } else {
-          // 市集現場：扣除「現場攤位庫存」
           batch.update(invRef, {
             stall_qty: window.firebase.firestore.FieldValue.increment(-item.qty),
             total_qty: window.firebase.firestore.FieldValue.increment(-item.qty),
@@ -598,7 +629,7 @@ class RealtimeService {
       localStorage.setItem(STORAGE_KEYS.LOCAL_SALES, JSON.stringify(sales));
 
       let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
-      items.forEach(sold => {
+      sanitizedItems.forEach(sold => {
         const target = inventory.find(i => i.sku_id === sold.skuId);
         if (target) {
           if (channelType === 'online') {
@@ -619,7 +650,7 @@ class RealtimeService {
       const batch = this.db.batch();
       for (const t of transfers) {
         const invRef = this.db.collection('inventory_master').doc(t.skuId);
-        const qty = Number(t.qty);
+        const qty = Number(t.qty) || 0;
         if (direction === 'home_to_stall') {
           batch.update(invRef, {
             home_qty: window.firebase.firestore.FieldValue.increment(-qty),
@@ -641,7 +672,7 @@ class RealtimeService {
       transfers.forEach(t => {
         const target = inventory.find(i => i.sku_id === t.skuId);
         if (target) {
-          const qty = Number(t.qty);
+          const qty = Number(t.qty) || 0;
           if (direction === 'home_to_stall') {
             target.home_qty = Math.max(0, target.home_qty - qty);
             target.stall_qty += qty;
@@ -738,6 +769,7 @@ class RealtimeService {
 
       const isOnline = orderData.channelType === 'online';
       for (const item of (orderData.items || [])) {
+        if (!item.skuId) continue;
         const invRef = this.db.collection('inventory_master').doc(item.skuId);
         if (isOnline) {
           batch.update(invRef, {
@@ -822,7 +854,7 @@ class RealtimeService {
     try {
       const payload = {
         action: 'fullSync',
-        data: { products, inventory, sales, users, events, syncType: type, timestamp: new Date().toISOString() }
+        data: sanitizeForFirestore({ products, inventory, sales, users, events, syncType: type, timestamp: new Date().toISOString() })
       };
 
       const resp = await fetch(gasUrl, {
@@ -844,7 +876,7 @@ class RealtimeService {
         await fetch(gasUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'saveDailyReport', data: reportData })
+          body: JSON.stringify({ action: 'saveDailyReport', data: sanitizeForFirestore(reportData) })
         });
       } catch(e) {}
     }

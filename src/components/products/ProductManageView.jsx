@@ -1,8 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Icons } from '../common/Icons';
 import { compressImageFile, exportToCsv } from '../../utils/formatters';
+import { realtime, STORAGE_KEYS } from '../../services/realtime';
 
 const DEFAULT_CLOTHING_SIZES = ['S', 'M', 'L', 'XL', '2XL', 'Free Size'];
+const BASE_CATEGORIES = ['衣服', '配件', '文創周邊', '帽子/包袋'];
+const BASE_OWNERS = ['攤位公家', '主理人 A', '主理人 B'];
 
 export default function ProductManageView({
   onAddProduct,
@@ -18,7 +21,23 @@ export default function ProductManageView({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('全部');
 
-  // 新增商品表單狀態 (服飾專屬優化)
+  // 動態分類與主理人名單
+  const [customCategories, setCustomCategories] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.LOCAL_CATEGORIES);
+      return stored ? JSON.parse(stored) : BASE_CATEGORIES;
+    } catch { return BASE_CATEGORIES; }
+  });
+  const [registeredUsers, setRegisteredUsers] = useState([]);
+  const [customOwners, setCustomOwners] = useState(BASE_OWNERS);
+
+  // 新增分類 / 新增主理人輸入彈窗
+  const [newCatInput, setNewCatInput] = useState('');
+  const [showNewCatInput, setShowNewCatInput] = useState(false);
+  const [newOwnerInput, setNewOwnerInput] = useState('');
+  const [showNewOwnerInput, setShowNewOwnerInput] = useState(false);
+
+  // 新增商品表單狀態
   const [name, setName] = useState('');
   const [category, setCategory] = useState('衣服');
   const [basePrice, setBasePrice] = useState(590);
@@ -30,11 +49,25 @@ export default function ProductManageView({
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const categories = useMemo(() => {
-    const set = new Set(['全部', '衣服', '配件', '文創周邊', '帽子/包袋']);
+  // 監聽成員名單，將已核准成員/編輯者動態加入主理人歸屬清單
+  useEffect(() => {
+    const unsub = realtime.subscribeUsers((usersList) => {
+      setRegisteredUsers(usersList || []);
+      const memberNames = (usersList || [])
+        .filter(u => u.status === '已核准')
+        .map(u => u.name || u.email.split('@')[0]);
+      
+      const mergedOwners = Array.from(new Set([...BASE_OWNERS, ...memberNames]));
+      setCustomOwners(mergedOwners);
+    });
+    return () => unsub();
+  }, []);
+
+  const allCategories = useMemo(() => {
+    const set = new Set(['全部', ...customCategories]);
     products.forEach(p => { if (p.category) set.add(p.category); });
     return Array.from(set);
-  }, [products]);
+  }, [products, customCategories]);
 
   const productSkusMap = useMemo(() => {
     const map = {};
@@ -54,6 +87,32 @@ export default function ProductManageView({
       return matchCat && matchSearch;
     });
   }, [products, filterCategory, searchTerm]);
+
+  // 新增自訂分類
+  const handleAddNewCategory = () => {
+    if (!newCatInput.trim()) return;
+    const cat = newCatInput.trim();
+    if (!customCategories.includes(cat)) {
+      const updated = [...customCategories, cat];
+      setCustomCategories(updated);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_CATEGORIES, JSON.stringify(updated));
+    }
+    setCategory(cat);
+    setNewCatInput('');
+    setShowNewCatInput(false);
+  };
+
+  // 新增自訂主理人
+  const handleAddNewOwner = () => {
+    if (!newOwnerInput.trim()) return;
+    const owner = newOwnerInput.trim();
+    if (!customOwners.includes(owner)) {
+      setCustomOwners(prev => [...prev, owner]);
+    }
+    setDefaultOwner(owner);
+    setNewOwnerInput('');
+    setShowNewOwnerInput(false);
+  };
 
   // 一鍵帶入標準服飾尺寸
   const handleApplyClothingPreset = () => {
@@ -108,7 +167,7 @@ export default function ProductManageView({
         product_id: productId,
         name: name.trim(),
         category: category.trim() || '衣服',
-        image_url: imageUrl,
+        image_url: imageUrl || '',
         created_at: new Date().toISOString()
       };
 
@@ -120,7 +179,7 @@ export default function ProductManageView({
         price: Number(s.price) || 0,
         cost: Number(s.cost) || 0,
         home_qty: Number(s.home_qty) || 0,
-        stall_qty: 0, // 初始建檔現場庫存一律為 0，透過調撥出攤
+        stall_qty: 0,
         total_qty: Number(s.home_qty) || 0,
         owner: s.owner || defaultOwner || '攤位公家',
         created_at: new Date().toISOString()
@@ -158,7 +217,7 @@ export default function ProductManageView({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight">商品名冊與服飾建檔</h2>
-          <p className="text-xs text-slate-400 font-bold">建立衣服圖樣、多尺寸 SKU 與主理人分帳設定</p>
+          <p className="text-xs text-slate-400 font-bold">建立衣服圖樣、多尺寸規格與主理人分帳設定</p>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -198,7 +257,7 @@ export default function ProductManageView({
           onChange={e => setFilterCategory(e.target.value)}
           className="bg-surface-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-black text-slate-700 focus:outline-none"
         >
-          {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
 
@@ -271,7 +330,7 @@ export default function ProductManageView({
       </div>
 
       {/* ========================================================================= */}
-      {/*  建立新商品 / 服飾 Modal (手機大字體與大按鈕) */}
+      {/* 👕 建立新商品 / 服飾 Modal (支援自訂分類與主理人) */}
       {/* ========================================================================= */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3.5 animate-in fade-in overflow-y-auto">
@@ -279,7 +338,7 @@ export default function ProductManageView({
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-base sm:text-lg font-black text-slate-900">建立新服飾 / 商品母檔</h3>
-                <p className="text-xs text-slate-400 font-bold">預設為衣服，可一鍵帶入 S ~ 2XL 尺寸</p>
+                <p className="text-xs text-slate-400 font-bold">可設定款式、自訂分類、多尺寸與主理人歸屬</p>
               </div>
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 p-1.5">
                 <Icons.Close className="w-5 h-5" />
@@ -301,26 +360,64 @@ export default function ProductManageView({
                     className="w-full min-h-[46px] bg-surface-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-rose-400"
                   />
                 </div>
+
+                {/* 商品分類 (支援自訂新增分類) */}
                 <div>
-                  <label className="block text-xs font-black text-slate-700 mb-1">商品分類</label>
-                  <select
-                    value={category}
-                    onChange={e => setCategory(e.target.value)}
-                    className="w-full min-h-[46px] bg-surface-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-sm font-black text-slate-900 focus:outline-none focus:border-rose-400"
-                  >
-                    <option value="衣服"> 衣服 (預設)</option>
-                    <option value="配件"> 配件</option>
-                    <option value="文創周邊"> 文創周邊</option>
-                    <option value="帽子/包袋"> 帽子/包袋</option>
-                  </select>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-xs font-black text-slate-700">商品分類</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewCatInput(!showNewCatInput)}
+                      className="text-[11px] font-black text-rose-600 hover:text-rose-700"
+                    >
+                      {showNewCatInput ? '選擇既有分類' : '+ 新增分類'}
+                    </button>
+                  </div>
+
+                  {showNewCatInput ? (
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        placeholder="輸入新分類名稱..."
+                        value={newCatInput}
+                        onChange={e => setNewCatInput(e.target.value)}
+                        className="flex-1 min-h-[46px] bg-white border-2 border-rose-300 rounded-2xl px-3 text-xs font-black text-slate-900 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddNewCategory}
+                        className="px-3 min-h-[46px] bg-rose-500 text-white rounded-2xl text-xs font-black"
+                      >
+                        加入
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      value={category}
+                      onChange={e => setCategory(e.target.value)}
+                      className="w-full min-h-[46px] bg-surface-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-sm font-black text-slate-900 focus:outline-none focus:border-rose-400"
+                    >
+                      {customCategories.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </div>
 
               {/* 預設售價、成本與主理人 (快速帶入所有尺寸) */}
               <div className="bg-surface-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
-                <div className="text-[11px] font-black text-slate-600 flex items-center justify-between">
-                  <span>統一設定基礎售價與歸屬 (將自動套用至各尺寸)</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-black text-slate-700">統一設定基礎售價與歸屬</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewOwnerInput(!showNewOwnerInput)}
+                    className="text-[10px] font-black text-purple-600 hover:text-purple-700"
+                  >
+                    {showNewOwnerInput ? '選擇既有人員' : '+ 自訂主理人/成員'}
+                  </button>
                 </div>
+
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold block mb-1">預設售價</span>
@@ -340,17 +437,38 @@ export default function ProductManageView({
                       className="w-full min-h-[40px] bg-white border border-slate-200 rounded-xl px-2 text-center text-sm font-black font-mono text-amber-700"
                     />
                   </div>
+
+                  {/* 貨品歸屬人員 (支援成員連動 + 自訂輸入) */}
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold block mb-1">貨品歸屬</span>
-                    <select
-                      value={defaultOwner}
-                      onChange={e => setDefaultOwner(e.target.value)}
-                      className="w-full min-h-[40px] bg-white border border-slate-200 rounded-xl px-1 text-center text-xs font-black text-purple-700"
-                    >
-                      <option value="攤位公家">攤位公家</option>
-                      <option value="主理人 A">主理人 A</option>
-                      <option value="主理人 B">主理人 B</option>
-                    </select>
+                    {showNewOwnerInput ? (
+                      <div className="flex gap-1">
+                        <input
+                          type="text"
+                          placeholder="姓名..."
+                          value={newOwnerInput}
+                          onChange={e => setNewOwnerInput(e.target.value)}
+                          className="w-full min-h-[40px] bg-white border-2 border-purple-300 rounded-xl px-2 text-xs font-black text-purple-900"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddNewOwner}
+                          className="px-2 min-h-[40px] bg-purple-600 text-white rounded-xl text-[10px] font-black"
+                        >
+                          OK
+                        </button>
+                      </div>
+                    ) : (
+                      <select
+                        value={defaultOwner}
+                        onChange={e => setDefaultOwner(e.target.value)}
+                        className="w-full min-h-[40px] bg-white border border-slate-200 rounded-xl px-1 text-center text-xs font-black text-purple-700"
+                      >
+                        {customOwners.map(o => (
+                          <option key={o} value={o}>{o}</option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 </div>
               </div>
@@ -411,9 +529,9 @@ export default function ProductManageView({
                           onChange={e => handleUpdateSkuRow(idx, 'owner', e.target.value)}
                           className="min-h-[38px] bg-white border border-slate-200 rounded-xl px-2 text-xs font-black text-purple-700"
                         >
-                          <option value="攤位公家">攤位公家</option>
-                          <option value="主理人 A">主理人 A</option>
-                          <option value="主理人 B">主理人 B</option>
+                          {customOwners.map(o => (
+                            <option key={o} value={o}>{o}</option>
+                          ))}
                         </select>
                         {skus.length > 1 && (
                           <button
