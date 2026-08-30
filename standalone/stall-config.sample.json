@@ -1,0 +1,12 @@
+{
+  "FIREBASE_CONFIG": {
+    "apiKey": "AIzaSyDGWrr9KUTNIhOc9_Afy04Fn03716XUlzA",
+    "authDomain": "market-stall-inventory.firebaseapp.com",
+    "projectId": "market-stall-inventory",
+    "storageBucket": "market-stall-inventory.firebasestorage.app",
+    "messagingSenderId": "14228005133",
+    "appId": "1:14228005133:web:74ccb923c127ffa15c5044",
+    "measurementId": "G-XJMR8VKQ04"
+  },
+  "GAS_API_URL": "https://script.google.com/macros/s/AKfycbwo5oT02hAuKme8e34F07MDktlxnJhAS8ZmKNL8nfljn6DEehlLh14lNQn9D8HzQJMZyw/exec"
+}

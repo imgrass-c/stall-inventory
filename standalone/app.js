@@ -1,0 +1,2422 @@
+const {
+  useState,
+  useEffect,
+  useMemo,
+  useRef
+} = React;
+
+// =========================================================================
+// 純色向量 SVG 圖示庫 (Heroicons / Lucide Vector SVGs)
+// =========================================================================
+const Icons = {
+  Logo: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  GoogleG: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    viewBox: "0 0 24 24"
+  }),
+  Pos: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Inventory: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Transfer: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Revenue: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Products: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Users: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  UserCheck: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Camera: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  UploadFile: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  DownloadFile: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  CloudSync: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  FileSpreadsheet: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Trash: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Image: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Shield: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Refresh: ({
+    className = "w-4 h-4"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  LogOut: ({
+    className = "w-4 h-4"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Check: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Alert: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Clock: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Plus: ({
+    className = "w-4 h-4"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Minus: ({
+    className = "w-4 h-4"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  ArrowRight: ({
+    className = "w-4 h-4"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  ArrowLeft: ({
+    className = "w-4 h-4"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Search: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  TrendingUp: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Calendar: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Tag: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Flag: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Trophy: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  ChevronUp: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  ChevronDown: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  ChevronLeft: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  ChevronRight: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Edit: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  DollarSign: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Sparkles: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  FileText: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Close: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Lock: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Gift: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Flame: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  HelpCircle: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Layers: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Folder: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Home: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Store: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Database: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  UserPlus: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  UserX: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }),
+  Lightbulb: ({
+    className = "w-5 h-5"
+  }) => React.createElement("svg", {
+    className: className,
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  })
+};
+function exportToCsv(filename, headers, rows) {
+  const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))].join('\r\n');
+  const blob = new Blob([csvContent], {
+    type: 'text/csv;charset=utf-8;'
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function compressImageFile(file, maxDimension = 360, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width,
+          h = img.height;
+        if (w > h) {
+          if (w > maxDimension) {
+            h = Math.round(h * maxDimension / w);
+            w = maxDimension;
+          }
+        } else {
+          if (h > maxDimension) {
+            w = Math.round(w * maxDimension / h);
+            h = maxDimension;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+    };
+    reader.onerror = reject;
+  });
+}
+const STORAGE_KEYS = {
+  FIREBASE_CONFIG: 'stall_firebase_config',
+  GAS_URL: 'stall_gas_url',
+  CURRENT_USER: 'stall_current_user',
+  LOCAL_PRODUCTS: 'stall_local_products',
+  LOCAL_INVENTORY: 'stall_local_inventory',
+  LOCAL_SALES: 'stall_local_sales',
+  LOCAL_USERS: 'stall_local_users'
+};
+class RealtimeService {
+  constructor() {
+    this.db = null;
+    this.auth = null;
+    this.isFirebaseReady = false;
+    this.init();
+  }
+  init() {
+    let conf = null;
+    if (window.STALL_CONFIG && window.STALL_CONFIG.FIREBASE_CONFIG && window.STALL_CONFIG.FIREBASE_CONFIG.projectId) {
+      conf = window.STALL_CONFIG.FIREBASE_CONFIG;
+    } else {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEYS.FIREBASE_CONFIG);
+        if (stored) conf = JSON.parse(stored);
+      } catch (e) {}
+    }
+    if (conf && conf.projectId && conf.apiKey && window.firebase) {
+      try {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(conf);
+        }
+        this.db = firebase.firestore();
+        this.auth = firebase.auth();
+        this.db.enablePersistence({
+          synchronizeTabs: true
+        }).catch(() => {});
+        this.isFirebaseReady = true;
+      } catch (e) {
+        console.error("Firebase init error:", e);
+      }
+    }
+  }
+  importConfigFile(configJsonObj) {
+    if (configJsonObj.FIREBASE_CONFIG) {
+      localStorage.setItem(STORAGE_KEYS.FIREBASE_CONFIG, JSON.stringify(configJsonObj.FIREBASE_CONFIG));
+    }
+    if (configJsonObj.GAS_API_URL) {
+      localStorage.setItem(STORAGE_KEYS.GAS_URL, configJsonObj.GAS_API_URL);
+    }
+    this.init();
+  }
+  getConnectedProjectName() {
+    if (window.STALL_CONFIG && window.STALL_CONFIG.FIREBASE_CONFIG?.projectId) {
+      return window.STALL_CONFIG.FIREBASE_CONFIG.projectId + " (config.js)";
+    }
+    try {
+      const s = localStorage.getItem(STORAGE_KEYS.FIREBASE_CONFIG);
+      if (s) return JSON.parse(s).projectId || '未設定';
+    } catch {}
+    return '未設定';
+  }
+  getFirebaseConfig() {
+    if (window.STALL_CONFIG && window.STALL_CONFIG.FIREBASE_CONFIG) {
+      return window.STALL_CONFIG.FIREBASE_CONFIG;
+    }
+    try {
+      const s = localStorage.getItem(STORAGE_KEYS.FIREBASE_CONFIG);
+      if (s) return JSON.parse(s);
+    } catch {}
+    return null;
+  }
+  getGasUrl() {
+    return window.STALL_CONFIG?.GAS_API_URL || localStorage.getItem(STORAGE_KEYS.GAS_URL) || '';
+  }
+  setGasUrl(url) {
+    url ? localStorage.setItem(STORAGE_KEYS.GAS_URL, url.trim()) : localStorage.removeItem(STORAGE_KEYS.GAS_URL);
+  }
+  getCurrentUser() {
+    try {
+      const d = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+      return d ? JSON.parse(d) : null;
+    } catch {
+      return null;
+    }
+  }
+  setCurrentUser(user) {
+    user ? localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user)) : localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+  }
+  async deleteInventoryItem(skuId) {
+    if (this.isFirebaseReady && this.db) {
+      const invRef = this.db.collection('inventory_master').doc(skuId);
+      const doc = await invRef.get();
+      let productId = null;
+      if (doc.exists) {
+        productId = doc.data().product_id;
+      }
+      await invRef.delete();
+
+      // 若該商品已無其他規格，則自動刪除商品母檔
+      if (productId) {
+        const remSnap = await this.db.collection('inventory_master').where('product_id', '==', productId).get();
+        if (remSnap.empty) {
+          await this.db.collection('products').doc(productId).delete().catch(() => {});
+        }
+      }
+      return {
+        success: true
+      };
+    } else {
+      let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
+      let products = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_PRODUCTS) || '[]');
+      const target = inventory.find(i => i.sku_id === skuId);
+      const productId = target ? target.product_id : null;
+      inventory = inventory.filter(i => i.sku_id !== skuId);
+      if (productId && !inventory.some(i => i.product_id === productId)) {
+        products = products.filter(p => p.product_id !== productId);
+        localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(products));
+      }
+      localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
+      return {
+        success: true
+      };
+    }
+  }
+  async deleteProduct(productId) {
+    if (this.isFirebaseReady && this.db) {
+      const batch = this.db.batch();
+      batch.delete(this.db.collection('products').doc(productId));
+      const invSnap = await this.db.collection('inventory_master').where('product_id', '==', productId).get();
+      invSnap.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+      return {
+        success: true
+      };
+    } else {
+      let products = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_PRODUCTS) || '[]');
+      let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
+      products = products.filter(p => p.product_id !== productId);
+      inventory = inventory.filter(i => i.product_id !== productId);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(products));
+      localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
+      return {
+        success: true
+      };
+    }
+  }
+  async clearAllTestData(options = {
+    clearProducts: true,
+    clearInventory: true,
+    clearSales: true
+  }) {
+    if (options.clearProducts) localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, '[]');
+    if (options.clearInventory) localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, '[]');
+    if (options.clearSales) localStorage.setItem(STORAGE_KEYS.LOCAL_SALES, '[]');
+    if (this.isFirebaseReady && this.db) {
+      const collectionsToClear = [];
+      if (options.clearProducts) collectionsToClear.push('products');
+      if (options.clearInventory) collectionsToClear.push('inventory_master');
+      if (options.clearSales) collectionsToClear.push('sales_orders');
+      for (const colName of collectionsToClear) {
+        try {
+          const snap = await this.db.collection(colName).get();
+          if (!snap.empty) {
+            const docs = [...snap.docs];
+            while (docs.length > 0) {
+              const chunk = docs.splice(0, 400);
+              const batch = this.db.batch();
+              chunk.forEach(doc => batch.delete(doc.ref));
+              await batch.commit();
+            }
+          }
+        } catch (err) {
+          console.error(`清空集合 ${colName} 錯誤:`, err);
+          throw new Error(`無法刪除雲端 ${colName}：${err.message}`);
+        }
+      }
+    }
+    return {
+      success: true
+    };
+  }
+  async loginWithGooglePopup() {
+    if (!this.isFirebaseReady || !this.auth) {
+      throw new Error("尚未設定 Firebase Config，請先使用下方「信箱快速登入」或至對接設定載入設定檔。");
+    }
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const result = await this.auth.signInWithPopup(provider);
+      const user = result.user;
+      return await this.verifyUser(user.email, user.displayName, user.photoURL);
+    } catch (err) {
+      const currentHost = window.location.hostname || '目前網域';
+      if (err.code === 'auth/unauthorized-domain') {
+        throw new Error(`目前網域「${currentHost}」尚未加入 Firebase 授權網域！\n\n【30秒解決方式】：\n1. 前往 Firebase 控制台 -> Authentication\n2. 點選「設定 (Settings)」分頁 ->「授權網域 (Authorized domains)」\n3. 點「新增網域」並輸入「${currentHost}」即可！\n\n或是您也可以直接使用下方的「Google Email 表單」登入！`);
+      } else if (err.code === 'auth/configuration-not-found') {
+        throw new Error("您的 Firebase 尚未啟用 Google 登入。\n請至 Firebase 控制台 -> Authentication -> 登入方式 -> 啟用「Google」，或直接使用下方的「信箱快速驗證」即可！");
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        throw new Error("登入視窗已關閉");
+      } else {
+        throw new Error(err.message || 'Google 登入發生錯誤');
+      }
+    }
+  }
+  async verifyUser(email, name = '', photo = '') {
+    const cleanEmail = email.trim().toLowerCase();
+    if (this.isFirebaseReady && this.db) {
+      const userRef = this.db.collection('users').doc(cleanEmail);
+      const doc = await userRef.get();
+      if (doc.exists) {
+        const data = doc.data();
+        const userObj = {
+          email: cleanEmail,
+          name: data.name || name || cleanEmail.split('@')[0],
+          picture: data.picture || photo,
+          role: data.role || '一般使用者',
+          status: data.status || '待審核'
+        };
+        return {
+          success: true,
+          user: userObj,
+          status: userObj.status
+        };
+      } else {
+        const allUsersSnap = await this.db.collection('users').get();
+        const isFirstUser = allUsersSnap.empty;
+        const newUserData = {
+          email: cleanEmail,
+          name: name || cleanEmail.split('@')[0],
+          picture: photo || '',
+          role: isFirstUser ? '系統管理者' : '一般使用者',
+          status: isFirstUser ? '已核准' : '待審核',
+          created_at: new Date().toISOString()
+        };
+        await userRef.set(newUserData);
+        return {
+          success: true,
+          user: newUserData,
+          status: newUserData.status,
+          isNew: true
+        };
+      }
+    } else {
+      let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]');
+      let found = users.find(u => u.email.toLowerCase() === cleanEmail);
+      if (!found) {
+        found = {
+          email: cleanEmail,
+          name: name || cleanEmail.split('@')[0],
+          role: users.length === 0 ? '系統管理者' : '一般使用者',
+          status: users.length === 0 ? '已核准' : '待審核'
+        };
+        users.push(found);
+        localStorage.setItem(STORAGE_KEYS.LOCAL_USERS, JSON.stringify(users));
+      }
+      return {
+        success: true,
+        user: found,
+        status: found.status
+      };
+    }
+  }
+  listenUserStatus(email, onStatusChanged) {
+    if (this.isFirebaseReady && this.db) {
+      const cleanEmail = email.trim().toLowerCase();
+      return this.db.collection('users').doc(cleanEmail).onSnapshot(doc => {
+        if (doc.exists) onStatusChanged(doc.data());
+      });
+    }
+    return () => {};
+  }
+  subscribeUsers(onUpdate) {
+    if (this.isFirebaseReady && this.db) {
+      return this.db.collection('users').onSnapshot(snap => {
+        const list = [];
+        snap.forEach(doc => list.push(doc.data()));
+        onUpdate(list);
+      }, () => {
+        onUpdate(JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]'));
+      });
+    } else {
+      onUpdate(JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]'));
+      return () => {};
+    }
+  }
+  async updateUserRole(email, newRole, newStatus) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (this.isFirebaseReady && this.db) {
+      await this.db.collection('users').doc(cleanEmail).update({
+        role: newRole,
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      });
+      return {
+        success: true
+      };
+    } else {
+      let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]');
+      const u = users.find(x => x.email.toLowerCase() === cleanEmail);
+      if (u) {
+        if (newRole) u.role = newRole;
+        if (newStatus) u.status = newStatus;
+        localStorage.setItem(STORAGE_KEYS.LOCAL_USERS, JSON.stringify(users));
+      }
+      return {
+        success: true
+      };
+    }
+  }
+  async preAddMember(email, name, role = '一般使用者', status = '已核准') {
+    const cleanEmail = email.trim().toLowerCase();
+    const userData = {
+      email: cleanEmail,
+      name: name.trim() || cleanEmail.split('@')[0],
+      role: role,
+      status: status,
+      created_at: new Date().toISOString()
+    };
+    if (this.isFirebaseReady && this.db) {
+      await this.db.collection('users').doc(cleanEmail).set(userData, {
+        merge: true
+      });
+      return {
+        success: true
+      };
+    } else {
+      let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]');
+      const idx = users.findIndex(u => u.email.toLowerCase() === cleanEmail);
+      if (idx >= 0) users[idx] = userData;else users.push(userData);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_USERS, JSON.stringify(users));
+      return {
+        success: true
+      };
+    }
+  }
+  async deleteMember(email) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (this.isFirebaseReady && this.db) {
+      await this.db.collection('users').doc(cleanEmail).delete();
+      return {
+        success: true
+      };
+    } else {
+      let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]');
+      users = users.filter(u => u.email.toLowerCase() !== cleanEmail);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_USERS, JSON.stringify(users));
+      return {
+        success: true
+      };
+    }
+  }
+  subscribeInventory(onUpdate) {
+    if (this.isFirebaseReady && this.db) {
+      return this.db.collection('inventory_master').onSnapshot(async snapshot => {
+        const inventory = [];
+        snapshot.forEach(doc => inventory.push(doc.data()));
+        const prodSnap = await this.db.collection('products').get();
+        const products = [];
+        prodSnap.forEach(doc => products.push(doc.data()));
+        onUpdate({
+          products,
+          inventory,
+          source: 'firebase'
+        });
+      }, err => {
+        onUpdate(this.getLocalData());
+      });
+    } else {
+      onUpdate(this.getLocalData());
+      return () => {};
+    }
+  }
+  async checkoutSale(orderPayload) {
+    const now = new Date();
+    const orderId = "SALE-" + UtilitiesFormatDate(now) + "-" + Math.floor(Math.random() * 1000);
+    const orderData = {
+      order_id: orderId,
+      ...orderPayload,
+      status: "有效",
+      timestamp: now.toISOString()
+    };
+    if (this.isFirebaseReady && this.db) {
+      const batch = this.db.batch();
+      orderPayload.items.forEach(item => {
+        const invRef = this.db.collection('inventory_master').doc(item.skuId);
+        batch.update(invRef, {
+          stall_qty: firebase.firestore.FieldValue.increment(-item.qty),
+          total_qty: firebase.firestore.FieldValue.increment(-item.qty),
+          updated_at: now.toISOString()
+        });
+      });
+      const saleRef = this.db.collection('sales_orders').doc(orderId);
+      batch.set(saleRef, orderData);
+      await batch.commit();
+      return {
+        success: true,
+        orderId,
+        finalAmount: orderPayload.finalAmount
+      };
+    } else {
+      let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
+      let sales = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_SALES) || '[]');
+      orderPayload.items.forEach(ci => {
+        const match = inventory.find(i => i.sku_id === ci.skuId);
+        if (match) {
+          match.stall_qty = Math.max(0, match.stall_qty - ci.qty);
+          match.total_qty = match.home_qty + match.stall_qty;
+        }
+      });
+      sales.push(orderData);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
+      localStorage.setItem(STORAGE_KEYS.LOCAL_SALES, JSON.stringify(sales));
+      return {
+        success: true,
+        orderId,
+        finalAmount: orderPayload.finalAmount
+      };
+    }
+  }
+  async transferStock(transferPayload) {
+    const now = new Date().toISOString();
+    if (this.isFirebaseReady && this.db) {
+      const batch = this.db.batch();
+      transferPayload.transfers.forEach(tr => {
+        const invRef = this.db.collection('inventory_master').doc(tr.skuId);
+        const q = Number(tr.qty) || 0;
+        batch.update(invRef, {
+          home_qty: firebase.firestore.FieldValue.increment(tr.direction === 'home_to_stall' ? -q : q),
+          stall_qty: firebase.firestore.FieldValue.increment(tr.direction === 'home_to_stall' ? q : -q),
+          updated_at: now
+        });
+      });
+      await batch.commit();
+      return {
+        success: true
+      };
+    } else {
+      let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
+      transferPayload.transfers.forEach(tr => {
+        const it = inventory.find(i => i.sku_id === tr.skuId);
+        if (it) {
+          const q = Number(tr.qty) || 0;
+          if (tr.direction === 'home_to_stall') {
+            it.home_qty = Math.max(0, it.home_qty - q);
+            it.stall_qty += q;
+          } else {
+            it.home_qty += q;
+            it.stall_qty = Math.max(0, it.stall_qty - q);
+          }
+          it.total_qty = it.home_qty + it.stall_qty;
+        }
+      });
+      localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
+      return {
+        success: true
+      };
+    }
+  }
+  async addProductWithVariants(payload) {
+    const pid = "PROD-" + Date.now().toString().slice(-6);
+    const owner = (payload.owner_name || payload.operator || '共同').trim();
+    const prodData = {
+      product_id: pid,
+      name: payload.name,
+      category: payload.category,
+      base_price: Number(payload.basePrice),
+      cost: Number(payload.cost || payload.baseCost || 0),
+      color_tag: payload.colorTag || "#3B82F6",
+      image_url: payload.image_url || "",
+      owner_name: owner,
+      created_by: payload.operator || "",
+      status: "active",
+      created_at: new Date().toISOString()
+    };
+    const variantDocs = (payload.variants || []).map((v, i) => {
+      const vName = (v.variantName || "").trim() || "規格 " + (i + 1);
+      const h = Number(v.homeQty) || 0,
+        s = Number(v.stallQty) || 0;
+      const vCost = Number(v.cost) > 0 ? Number(v.cost) : Number(payload.cost || payload.baseCost) || 0;
+      return {
+        sku_id: `${pid}-${encodeURIComponent(vName).replace(/%/g, "")}`,
+        product_id: pid,
+        product_name: payload.name,
+        category: payload.category,
+        variant_name: vName,
+        cost: vCost,
+        price: Number(v.price) > 0 ? Number(v.price) : Number(payload.basePrice),
+        home_qty: h,
+        stall_qty: s,
+        total_qty: h + s,
+        safety_stock: Number(v.safetyStock) || 2,
+        image_url: payload.image_url || "",
+        owner_name: owner,
+        created_by: payload.operator || "",
+        updated_at: new Date().toISOString()
+      };
+    });
+    if (this.isFirebaseReady && this.db) {
+      const batch = this.db.batch();
+      batch.set(this.db.collection('products').doc(pid), prodData);
+      variantDocs.forEach(v => batch.set(this.db.collection('inventory_master').doc(v.sku_id), v));
+      await batch.commit();
+      return {
+        success: true,
+        productId: pid
+      };
+    } else {
+      let products = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_PRODUCTS) || '[]');
+      let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
+      products.push(prodData);
+      inventory.push(...variantDocs);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(products));
+      localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
+      return {
+        success: true,
+        productId: pid
+      };
+    }
+  }
+  async getAllSalesRaw() {
+    let sales = [];
+    try {
+      if (this.isFirebaseReady && this.db) {
+        const snap = await this.db.collection('sales_orders').get();
+        snap.forEach(doc => sales.push(doc.data()));
+      } else {
+        sales = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_SALES) || '[]');
+      }
+    } catch (e) {
+      sales = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_SALES) || '[]');
+    }
+    return sales;
+  }
+  calculateSalesStats(salesList = []) {
+    const valid = salesList.filter(s => s.status !== '已作廢');
+    let rev = 0,
+      totalCost = 0,
+      itemsCount = 0;
+    let pmObj = {
+      "現金": 0,
+      "LinePay": 0,
+      "街口": 0,
+      "轉帳": 0,
+      "公關贈送": 0
+    };
+    let ranks = {};
+    let ownerBreakdown = {};
+    let dailyMap = {};
+    let eventMap = {};
+    valid.forEach(s => {
+      const pm = s.paymentMethod || s.payment_method || '現金';
+      const isPRGift = pm === '公關贈送';
+      const orderTotalAmount = Number(s.totalAmount || s.total_amount || 0);
+      const orderFinalAmount = isPRGift ? 0 : Number(s.finalAmount !== undefined ? s.finalAmount : s.final_amount !== undefined ? s.final_amount : orderTotalAmount - Number(s.discountAmount || s.discount_amount || 0));
+      rev += orderFinalAmount;
+      pmObj[pm] = (pmObj[pm] || 0) + orderFinalAmount;
+      const discountRatio = orderTotalAmount > 0 ? orderFinalAmount / orderTotalAmount : isPRGift ? 0 : 1;
+      const sDate = s.timestamp ? formatTaiwanTime(s.timestamp, 'date') : s.date || '未知日期';
+      const sEvent = s.eventName || s.event_name || '一般現場';
+
+      // 每日匯總
+      if (!dailyMap[sDate]) {
+        dailyMap[sDate] = {
+          date: sDate,
+          eventName: sEvent,
+          totalOrders: 0,
+          totalItems: 0,
+          revenue: 0,
+          cost: 0,
+          profit: 0,
+          cashRevenue: 0,
+          digitalRevenue: 0
+        };
+      }
+      dailyMap[sDate].totalOrders += 1;
+      dailyMap[sDate].revenue += orderFinalAmount;
+      if (pm === '現金') {
+        dailyMap[sDate].cashRevenue += orderFinalAmount;
+      } else if (!isPRGift) {
+        dailyMap[sDate].digitalRevenue += orderFinalAmount;
+      }
+
+      // 活動場次匯總
+      if (!eventMap[sEvent]) {
+        eventMap[sEvent] = {
+          eventName: sEvent,
+          totalOrders: 0,
+          totalItems: 0,
+          revenue: 0,
+          cost: 0,
+          profit: 0
+        };
+      }
+      eventMap[sEvent].totalOrders += 1;
+      eventMap[sEvent].revenue += orderFinalAmount;
+      (s.items || []).forEach(it => {
+        const q = Number(it.qty) || 1;
+        const originalPrice = Number(it.price) || 0;
+        const itemCost = Number(it.cost) || 0;
+        const itemRealSubtotal = isPRGift ? 0 : Math.round(originalPrice * q * discountRatio);
+        const itemTotalCost = itemCost * q;
+        const itemProfit = itemRealSubtotal - itemTotalCost;
+        totalCost += itemTotalCost;
+        itemsCount += q;
+        dailyMap[sDate].totalItems += q;
+        dailyMap[sDate].cost += itemTotalCost;
+        dailyMap[sDate].profit += itemProfit;
+        eventMap[sEvent].totalItems += q;
+        eventMap[sEvent].cost += itemTotalCost;
+        eventMap[sEvent].profit += itemProfit;
+        const k = `${it.productName || '商品'} (${it.variantName || '一般'})`;
+        ranks[k] = (ranks[k] || 0) + q;
+
+        // 雙主理人分帳統計
+        const owner = (it.owner_name || '共同/未指定').trim();
+        if (!ownerBreakdown[owner]) {
+          ownerBreakdown[owner] = {
+            totalRevenue: 0,
+            totalCost: 0,
+            totalProfit: 0,
+            totalQty: 0,
+            items: {},
+            salesRecords: []
+          };
+        }
+        ownerBreakdown[owner].totalRevenue += itemRealSubtotal;
+        ownerBreakdown[owner].totalCost += itemTotalCost;
+        ownerBreakdown[owner].totalProfit += itemProfit;
+        ownerBreakdown[owner].totalQty += q;
+        ownerBreakdown[owner].items[k] = (ownerBreakdown[owner].items[k] || 0) + q;
+
+        // 儲存單一銷售詳細紀錄 (含時間、品項、原價、實收、折讓、支付方式)
+        ownerBreakdown[owner].salesRecords.push({
+          orderId: s.order_id || s.orderId,
+          timestamp: s.timestamp,
+          date: sDate,
+          eventName: sEvent,
+          productName: it.productName || '商品',
+          variantName: it.variantName || '一般',
+          qty: q,
+          originalPrice: originalPrice,
+          realSubtotal: itemRealSubtotal,
+          discount: Math.round(originalPrice * q - itemRealSubtotal),
+          cost: itemCost,
+          paymentMethod: pm,
+          operator: s.operator || '小幫手'
+        });
+      });
+    });
+    const rankingList = Object.keys(ranks).map(k => ({
+      name: k,
+      qty: ranks[k]
+    })).sort((a, b) => b.qty - a.qty);
+    const dailyList = Object.values(dailyMap).sort((a, b) => b.date.localeCompare(a.date));
+    const eventList = Object.values(eventMap).sort((a, b) => b.revenue - a.revenue);
+    const totalProfit = rev - totalCost;
+    const profitMargin = rev > 0 ? (totalProfit / rev * 100).toFixed(1) : 0;
+    return {
+      success: true,
+      totalRevenue: rev,
+      totalCost: totalCost,
+      totalProfit: totalProfit,
+      profitMargin: profitMargin,
+      totalOrders: valid.length,
+      totalItemsSold: itemsCount,
+      paymentBreakdown: pmObj,
+      ownerBreakdown: ownerBreakdown,
+      itemRanking: rankingList,
+      dailyBreakdown: dailyList,
+      eventBreakdown: eventList,
+      recentSales: [...salesList].reverse()
+    };
+  }
+  async getTodaySales() {
+    const todayStr = formatTaiwanTime(new Date(), 'date');
+    const sales = await this.getAllSalesRaw();
+    const todaySales = sales.filter(s => {
+      const sDate = s.timestamp ? formatTaiwanTime(s.timestamp, 'date') : s.date || '';
+      return sDate === todayStr;
+    });
+    const res = this.calculateSalesStats(todaySales);
+    res.date = todayStr;
+    return res;
+  }
+  async getMonthSales(targetMonth) {
+    const mStr = targetMonth || formatTaiwanTime(new Date(), 'date').slice(0, 7); // e.g. "2026-08"
+    const sales = await this.getAllSalesRaw();
+    const monthSales = sales.filter(s => {
+      const sDate = s.timestamp ? formatTaiwanTime(s.timestamp, 'date') : s.date || '';
+      return sDate.startsWith(mStr);
+    });
+    const res = this.calculateSalesStats(monthSales);
+    res.month = mStr;
+    return res;
+  }
+  async getEventSales(targetEvent) {
+    const sales = await this.getAllSalesRaw();
+    const eventSales = !targetEvent || targetEvent === 'ALL' ? sales : sales.filter(s => (s.eventName || s.event_name || '一般現場') === targetEvent);
+    const res = this.calculateSalesStats(eventSales);
+    res.eventName = targetEvent || 'ALL';
+    return res;
+  }
+  async getAllEvents() {
+    const sales = await this.getAllSalesRaw();
+    const set = new Set();
+    sales.forEach(s => {
+      const ev = s.eventName || s.event_name || '一般現場';
+      if (ev) set.add(ev);
+    });
+    return Array.from(set);
+  }
+  async saveDailyReport(eodData) {
+    const dateStr = eodData.date || formatTaiwanTime(new Date(), 'date');
+    const reportId = `REPORT-${dateStr}`;
+    const record = {
+      report_id: reportId,
+      date: dateStr,
+      eventName: eodData.eventName || '一般現場',
+      total_items: eodData.totalItemsSold || 0,
+      total_orders: eodData.totalOrders || 0,
+      daily_revenue: eodData.totalRevenue || 0,
+      daily_cost: eodData.totalCost || 0,
+      daily_profit: eodData.totalProfit || 0,
+      profit_margin: eodData.profitMargin || 0,
+      cash_revenue: eodData.paymentBreakdown?.['現金'] || 0,
+      digital_revenue: (eodData.totalRevenue || 0) - (eodData.paymentBreakdown?.['現金'] || 0),
+      closed_by: eodData.operator || '攤主',
+      closed_at: new Date().toISOString()
+    };
+    if (this.isFirebaseReady && this.db) {
+      await this.db.collection('daily_reports').doc(reportId).set(record);
+    }
+    let reports = JSON.parse(localStorage.getItem('stall_daily_reports') || '[]');
+    reports = reports.filter(r => r.report_id !== reportId);
+    reports.unshift(record);
+    localStorage.setItem('stall_daily_reports', JSON.stringify(reports));
+    return {
+      success: true,
+      report: record
+    };
+  }
+  async voidSale(orderId, operator) {
+    if (this.isFirebaseReady && this.db) {
+      const saleRef = this.db.collection('sales_orders').doc(orderId);
+      const doc = await saleRef.get();
+      if (!doc.exists) return {
+        success: false,
+        error: "找不到訂單"
+      };
+      const saleData = doc.data();
+      if (saleData.status === '已作廢') return {
+        success: false,
+        error: "訂單已作廢"
+      };
+      const batch = this.db.batch();
+      batch.update(saleRef, {
+        status: "已作廢",
+        voided_by: operator,
+        voided_at: new Date().toISOString()
+      });
+      (saleData.items || []).forEach(it => {
+        const invRef = this.db.collection('inventory_master').doc(it.skuId);
+        batch.update(invRef, {
+          stall_qty: firebase.firestore.FieldValue.increment(it.qty),
+          total_qty: firebase.firestore.FieldValue.increment(it.qty),
+          updated_at: new Date().toISOString()
+        });
+      });
+      await batch.commit();
+      return {
+        success: true
+      };
+    } else {
+      let sales = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_SALES) || '[]');
+      let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
+      const target = sales.find(s => s.order_id === orderId);
+      if (!target || target.status === '已作廢') return {
+        success: false
+      };
+      target.status = '已作廢';
+      (target.items || []).forEach(it => {
+        const inv = inventory.find(i => i.sku_id === it.skuId);
+        if (inv) {
+          inv.stall_qty += Number(it.qty) || 1;
+          inv.total_qty = inv.home_qty + inv.stall_qty;
+        }
+      });
+      localStorage.setItem(STORAGE_KEYS.LOCAL_SALES, JSON.stringify(sales));
+      localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
+      return {
+        success: true
+      };
+    }
+  }
+  subscribeSales(onUpdate) {
+    if (this.isFirebaseReady && this.db) {
+      return this.db.collection('sales_orders').onSnapshot(() => {
+        this.getTodaySales().then(res => onUpdate(res)).catch(() => {});
+      }, () => {
+        this.getTodaySales().then(res => onUpdate(res)).catch(() => {});
+      });
+    } else {
+      this.getTodaySales().then(res => onUpdate(res)).catch(() => {});
+      return () => {};
+    }
+  }
+  async syncToGoogleSheets(targetType = 'all') {
+    const gasUrl = this.getGasUrl();
+    if (!gasUrl) throw new Error("請先在「對接與備份設定」中設定 Google Apps Script URL！");
+    let products = [],
+      inventory = [],
+      users = [],
+      sales = [],
+      dailyReports = [];
+    if (this.isFirebaseReady && this.db) {
+      const pSnap = await this.db.collection('products').get();
+      pSnap.forEach(d => products.push(d.data()));
+      const iSnap = await this.db.collection('inventory_master').get();
+      iSnap.forEach(d => inventory.push(d.data()));
+      const uSnap = await this.db.collection('users').get();
+      uSnap.forEach(d => users.push(d.data()));
+      const sSnap = await this.db.collection('sales_orders').get();
+      sSnap.forEach(d => sales.push(d.data()));
+      const drSnap = await this.db.collection('daily_reports').get();
+      drSnap.forEach(d => dailyReports.push(d.data()));
+    } else {
+      const l = this.getLocalData();
+      products = l.products;
+      inventory = l.inventory;
+      users = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]');
+      sales = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_SALES) || '[]');
+      dailyReports = JSON.parse(localStorage.getItem('stall_daily_reports') || '[]');
+    }
+    const payload = {
+      action: 'fullSyncBackup',
+      targetType: 'all',
+      // 一律全表完整同步，確保商品、規格、銷售、日結、成員雙向關聯完整無遺漏
+      products,
+      inventory,
+      sales,
+      dailyReports,
+      users,
+      timestamp: new Date().toISOString()
+    };
+    try {
+      const res = await fetch(gasUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify(payload)
+      });
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        if (data && data.success === false) {
+          throw new Error(data.error || "Google 試算表執行錯誤");
+        }
+        return data;
+      } catch (e) {
+        if (res.ok || text.includes('success')) {
+          return {
+            success: true,
+            message: "Google 試算表備份同步成功！"
+          };
+        }
+        throw new Error(`Google 試算表回應異常：${text.slice(0, 150)}`);
+      }
+    } catch (err) {
+      console.error("同步 Google Sheet 錯誤:", err);
+      if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('CORS'))) {
+        throw new Error(`無法連線至 Google 試算表！\n\n【30秒解決方式】：\n1. 前往您的 Google 試算表 -> 擴充功能 -> Apps Script\n2. 點選右上角「部署」->「管理部署作業」\n3. 點選鉛筆圖示編輯，確認「誰可以存取」設為【所有人 (Anyone)】！\n4. 版本選擇【新版本 (New Version)】後點「部署」即可！`);
+      }
+      throw err;
+    }
+  }
+  getLocalData() {
+    return {
+      products: JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_PRODUCTS) || '[]'),
+      inventory: JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]'),
+      source: 'local'
+    };
+  }
+}
+function UtilitiesFormatDate(d) {
+  return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + "-" + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0');
+}
+function formatTaiwanTime(ts, mode = 'time') {
+  if (!ts) return '';
+  const d = ts instanceof Date ? ts : new Date(ts);
+  if (isNaN(d.getTime())) return String(ts);
+  try {
+    const formatter = new Intl.DateTimeFormat('zh-TW', {
+      timeZone: 'Asia/Taipei',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    const parts = formatter.formatToParts(d);
+    const m = {};
+    parts.forEach(p => m[p.type] = p.value);
+    if (mode === 'date') return `${m.year}-${m.month}-${m.day}`;
+    if (mode === 'time') return `${m.hour}:${m.minute}`;
+    if (mode === 'time_sec') return `${m.hour}:${m.minute}:${m.second}`;
+    if (mode === 'datetime') return `${m.year}/${m.month}/${m.day} ${m.hour}:${m.minute}`;
+    if (mode === 'full') return `${m.year}/${m.month}/${m.day} ${m.hour}:${m.minute}:${m.second}`;
+    return `${m.hour}:${m.minute}`;
+  } catch (e) {
+    const pad = n => String(n).padStart(2, '0');
+    if (mode === 'date') return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    if (mode === 'time_sec') return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+}
+const realtime = new RealtimeService();
+
+// =========================================================================
+// 主應用程式 App (Main Application Root)
+// =========================================================================
+function App() {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [currentTab, setCurrentTab] = useState('pos');
+  const [products, setProducts] = useState([]);
+  const [inventory, setInventory] = useState([]);
+  const [isFirebaseLive, setIsFirebaseLive] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+  useEffect(() => {
+    const u = realtime.getCurrentUser();
+    if (u && u.status === '已核准') {
+      setCurrentUser(u);
+    } else {
+      setCurrentUser(null);
+    }
+  }, []);
+  useEffect(() => {
+    const unsubscribe = realtime.subscribeInventory(({
+      products,
+      inventory,
+      source
+    }) => {
+      setProducts(products || []);
+      setInventory(inventory || []);
+      setIsFirebaseLive(source === 'firebase');
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
+  useEffect(() => {
+    if (currentUser && currentUser.role === '系統管理者') {
+      const unsub = realtime.subscribeUsers(usersList => {
+        const count = usersList.filter(u => u.status === '待審核').length;
+        setPendingCount(count);
+      });
+      return () => unsub();
+    }
+  }, [currentUser]);
+  const handleLogout = () => {
+    realtime.setCurrentUser(null);
+    setCurrentUser(null);
+  };
+  const handleClearAllData = async () => {
+    try {
+      await realtime.clearAllTestData();
+      setProducts([]);
+      setInventory([]);
+      alert('已成功清空 Firebase 雲端與本地的所有商品、庫存及銷售紀錄！');
+    } catch (err) {
+      console.error("清空失敗:", err);
+      alert('清空失敗：' + (err.message || '請確認網路或 Firebase 權限'));
+    }
+  };
+  const handleDeleteInventoryItem = async skuId => {
+    try {
+      await realtime.deleteInventoryItem(skuId);
+    } catch (err) {
+      console.error("刪除品項失敗:", err);
+      throw err;
+    }
+  };
+  const handleDeleteProduct = async productId => {
+    try {
+      await realtime.deleteProduct(productId);
+    } catch (err) {
+      console.error("刪除商品失敗:", err);
+      throw err;
+    }
+  };
+  const isAdmin = currentUser && currentUser.role === '系統管理者';
+  const isEditorOrAdmin = currentUser && ['系統管理者', '編輯者'].includes(currentUser.role);
+  const navItems = [{
+    id: 'pos',
+    label: '現場收銀 POS',
+    icon: Icons.Pos
+  }, {
+    id: 'inventory',
+    label: '即時庫存清點',
+    icon: Icons.Inventory
+  }, {
+    id: 'transfer',
+    label: '庫存調撥作業',
+    icon: Icons.Transfer
+  }, {
+    id: 'revenue',
+    label: '今日營收統計',
+    icon: Icons.Revenue
+  }, ...(isEditorOrAdmin ? [{
+    id: 'products',
+    label: '商品與規格管理',
+    icon: Icons.Products
+  }] : []), ...(isAdmin ? [{
+    id: 'members',
+    label: '成員與會員審核',
+    icon: Icons.UserCheck,
+    badge: pendingCount
+  }] : [])];
+  return React.createElement("div", {
+    className: "min-h-screen flex bg-surface-50 text-slate-900"
+  }, !currentUser && React.createElement(AuthScreen, {
+    onLoginSuccess: user => {
+      setCurrentUser(user);
+    },
+    onOpenSettings: () => setIsSettingsOpen(true)
+  }), isSettingsOpen && React.createElement(SettingsDialog, {
+    onClose: () => setIsSettingsOpen(false),
+    user: currentUser,
+    onReload: () => window.location.reload(),
+    onFullSyncSheets: () => realtime.syncToGoogleSheets('all'),
+    onClearAllData: handleClearAllData,
+    inventory: inventory,
+    products: products
+  }));
+}
+
+// =========================================================================
+// 專屬登入畫面 (Auth Screen)
+// =========================================================================
+function AuthScreen({
+  onLoginSuccess,
+  onOpenSettings
+}) {
+  const [emailInput, setEmailInput] = useState('');
+  const [nameInput, setNameInput] = useState('');
+  const [pendingUser, setPendingUser] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+    if (pendingUser && pendingUser.email) {
+      const unsub = realtime.listenUserStatus(pendingUser.email, userData => {
+        if (userData && userData.status === '已核准') {
+          realtime.setCurrentUser(userData);
+          onLoginSuccess(userData);
+        }
+      });
+      return () => unsub();
+    }
+  }, [pendingUser]);
+  const handleGooglePopupLogin = async () => {
+    setIsSubmitting(true);
+    setErrorMsg('');
+    try {
+      const res = await realtime.loginWithGooglePopup();
+      if (res && res.success) {
+        if (res.status === '已核准') {
+          realtime.setCurrentUser(res.user);
+          onLoginSuccess(res.user);
+        } else {
+          setPendingUser(res.user);
+        }
+      }
+    } catch (err) {
+      setErrorMsg(err.message || 'Google 登入失敗');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const handleManualEmailLogin = async e => {
+    e.preventDefault();
+    if (!emailInput.trim()) return;
+    setIsSubmitting(true);
+    setErrorMsg('');
+    try {
+      const res = await realtime.verifyUser(emailInput.trim(), nameInput.trim());
+      if (res && res.success) {
+        if (res.status === '已核准') {
+          realtime.setCurrentUser(res.user);
+          onLoginSuccess(res.user);
+        } else if (res.status === '已停用') {
+          setErrorMsg('此帳號已被管理員停用存取權限。');
+        } else {
+          setPendingUser(res.user);
+        }
+      }
+    } catch (err) {
+      setErrorMsg(err.message || '驗證失敗');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const handleQuickDemo = role => {
+    const demo = {
+      email: role === '系統管理者' ? 'owner@stall.com' : role === '編輯者' ? 'editor@stall.com' : 'helper@stall.com',
+      name: role === '系統管理者' ? '攤主 (系統管理者)' : role === '編輯者' ? '夥伴 (編輯者)' : '市集小幫手',
+      role: role,
+      status: '已核准'
+    };
+    realtime.setCurrentUser(demo);
+    onLoginSuccess(demo);
+  };
+  return React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 animate-in fade-in overflow-y-auto"
+  });
+}
+
+// =========================================================================
+// 手機優先 POS 收銀模組 (Mobile POS Checkout Module)
+// =========================================================================
+function MobilePosSection({
+  products = [],
+  inventory = [],
+  onCheckout,
+  user,
+  onNavigateToProducts
+}) {
+  const [category, setCategory] = useState('全部');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentEvent, setCurrentEvent] = useState(() => localStorage.getItem('stall_current_event') || '2026 現場出攤');
+  const [cart, setCart] = useState([]);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('現金');
+  const [discount, setDiscount] = useState(0);
+  const [cashGiven, setCashGiven] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSuccess, setLastSuccess] = useState(null);
+  const [previewImageModal, setPreviewImageModal] = useState(null);
+  const categories = ['全部', ...new Set(products.map(p => p.category).filter(Boolean))];
+  const productCards = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return products.filter(p => category === '全部' || p.category === category).filter(p => {
+      if (!q) return true;
+      const matchName = (p.name || '').toLowerCase().includes(q);
+      const matchCat = (p.category || '').toLowerCase().includes(q);
+      const matchOwner = (p.owner_name || '').toLowerCase().includes(q);
+      const matchVariant = inventory.some(inv => inv.product_id === p.product_id && (inv.variant_name || '').toLowerCase().includes(q));
+      return matchName || matchCat || matchOwner || matchVariant;
+    }).map(p => ({
+      ...p,
+      variants: inventory.filter(inv => inv.product_id === p.product_id)
+    }));
+  }, [products, inventory, category, searchQuery]);
+  const addToCart = (v, p) => {
+    setCart(prev => {
+      const ex = prev.find(i => i.skuId === v.sku_id);
+      if (ex) return prev.map(i => i.skuId === v.sku_id ? {
+        ...i,
+        qty: i.qty + 1
+      } : i);
+      return [...prev, {
+        skuId: v.sku_id,
+        productId: p.product_id,
+        productName: p.name,
+        variantName: v.variant_name,
+        price: Number(v.price) || Number(p.base_price) || 0,
+        cost: Number(v.cost) || Number(p.cost) || 0,
+        image_url: p.image_url || "",
+        owner_name: p.owner_name || v.owner_name || '共同',
+        qty: 1
+      }];
+    });
+  };
+  const updateQty = (skuId, d) => {
+    setCart(prev => prev.map(i => i.skuId === skuId ? {
+      ...i,
+      qty: i.qty + d
+    } : i).filter(i => i.qty > 0));
+  };
+  const isPRGift = paymentMethod === '公關贈送';
+  const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const effectiveDiscount = isPRGift ? subtotal : Math.min(subtotal, Math.max(0, Number(discount) || 0));
+  const finalAmount = isPRGift ? 0 : Math.max(0, subtotal - effectiveDiscount);
+  const changeDue = paymentMethod === '現金' && cashGiven ? Number(cashGiven) - finalAmount : null;
+  const doCheckout = async () => {
+    if (cart.length === 0 || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const res = await onCheckout({
+        items: cart,
+        totalAmount: subtotal,
+        discountAmount: effectiveDiscount,
+        finalAmount,
+        paymentMethod,
+        eventName: currentEvent || '一般現場',
+        operator: user ? user.name : '現場小幫手'
+      });
+      if (res && res.success) {
+        setLastSuccess({
+          orderId: res.orderId,
+          amount: finalAmount,
+          changeDue: changeDue > 0 ? changeDue : 0
+        });
+        setCart([]);
+        setDiscount(0);
+        setCashGiven('');
+        setIsDrawerOpen(false);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  if (products.length === 0) {
+    return React.createElement("div", {
+      className: "max-w-md mx-auto my-12 p-8 text-center bg-white rounded-3xl border border-slate-200 shadow-card space-y-4 animate-in fade-in"
+    }, ['系統管理者', '編輯者'].includes(user?.role) && React.createElement("button", {
+      onClick: onNavigateToProducts,
+      className: "w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-2xl text-xs transition shadow-md flex items-center justify-center gap-1.5"
+    }));
+  }
+  return React.createElement("div", {
+    className: "space-y-3 max-w-5xl mx-auto pb-24"
+  }, previewImageModal && React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in",
+    onClick: () => setPreviewImageModal(null)
+  }), lastSuccess && React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in"
+  }), productCards.length === 0 && React.createElement("div", {
+    className: "bg-white rounded-3xl p-8 text-center border border-slate-200 space-y-3 shadow-sm my-4 animate-in fade-in"
+  }), cart.length > 0 && React.createElement("div", {
+    className: "fixed bottom-16 md:bottom-6 left-3 right-3 z-40 max-w-md mx-auto"
+  }), isDrawerOpen && React.createElement("div", {
+    className: "fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/60 backdrop-blur-sm animate-in fade-in"
+  }));
+}
+
+// =========================================================================
+// 即時庫存清點 (Realtime Inventory Management)
+// =========================================================================
+function InventorySection({
+  inventory = [],
+  onSyncSheets,
+  isAdmin,
+  onClearData,
+  onDeleteItem,
+  onNavigateToProducts,
+  user
+}) {
+  const [search, setSearch] = useState('');
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
+  const [isDeleting, setIsDeleting] = useState(null);
+  const canManage = isAdmin || user?.role === '編輯者';
+  const filtered = inventory.filter(i => (i.product_name || '').includes(search) || (i.variant_name || '').includes(search));
+  const totalStall = inventory.reduce((s, i) => s + (Number(i.stall_qty) || 0), 0);
+  const totalHome = inventory.reduce((s, i) => s + (Number(i.home_qty) || 0), 0);
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncMsg('');
+    try {
+      const res = await onSyncSheets();
+      if (res && res.success) {
+        setSyncMsg('已成功將即時庫存存量同步更新至 Google 試算表！');
+      } else {
+        setSyncMsg('同步失敗：' + (res?.error || '請檢查 GAS 連線'));
+      }
+    } catch (e) {
+      setSyncMsg('同步錯誤：' + e.message);
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMsg(''), 5000);
+    }
+  };
+  const handleExportCsv = () => {
+    const headers = ["SKU編號", "商品名稱", "分類", "商品歸屬攤主", "規格名稱", "售價", "現場庫存", "家內庫存", "總庫存", "安全庫存"];
+    const rows = inventory.map(i => [i.sku_id, i.product_name, i.category, i.owner_name || '共同', i.variant_name, i.price, i.stall_qty, i.home_qty, i.total_qty || Number(i.home_qty) + Number(i.stall_qty), i.safety_stock || 2]);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    exportToCsv(`感情失敗之友會_即時庫存清冊_${dateStr}.csv`, headers, rows);
+  };
+  const handleClearClick = async () => {
+    if (!confirm('確定要徹底清空所有庫存品項與商品資料嗎？')) return;
+    await onClearData();
+    setSyncMsg('已成功清空所有庫存資料！');
+    setTimeout(() => setSyncMsg(''), 4000);
+  };
+  const handleDeleteSingleItem = async item => {
+    const confirmText = `確定要刪除「${item.product_name} - ${item.variant_name}」嗎？\n\n刪除後此品項將從雲端庫存與收銀台徹底移除。`;
+    if (!confirm(confirmText)) return;
+    setIsDeleting(item.sku_id);
+    try {
+      await onDeleteItem(item.sku_id);
+      setSyncMsg(`已成功刪除「${item.product_name} (${item.variant_name})」！`);
+      setTimeout(() => setSyncMsg(''), 4000);
+    } catch (err) {
+      alert('刪除失敗：' + (err.message || '請確認權限'));
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+  return React.createElement("div", {
+    className: "space-y-4 max-w-5xl mx-auto"
+  }, syncMsg && React.createElement("div", {
+    className: "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2"
+  }), inventory.length > 0 ? React.createElement(React.Fragment, null) : React.createElement("div", {
+    className: "bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-3"
+  }, isAdmin && React.createElement("button", {
+    onClick: onNavigateToProducts,
+    className: "text-xs text-rose-600 font-black hover:underline flex items-center justify-center gap-1 mx-auto"
+  })));
+}
+
+// =========================================================================
+// 庫存調撥 (Stock Transfer Module)
+// =========================================================================
+function TransferSection({
+  inventory = [],
+  onTransfer,
+  user
+}) {
+  const [direction, setDirection] = useState('home_to_stall');
+  const [quantities, setQuantities] = useState({});
+  const [msg, setMsg] = useState('');
+  const updateVal = (sku, val, max) => {
+    let n = parseInt(val, 10);
+    if (isNaN(n) || n < 0) n = 0;
+    if (max !== undefined && n > max) n = max;
+    setQuantities(p => ({
+      ...p,
+      [sku]: n
+    }));
+  };
+  const activeList = Object.keys(quantities).filter(k => quantities[k] > 0).map(k => ({
+    skuId: k,
+    qty: quantities[k],
+    direction
+  }));
+  const submit = async () => {
+    if (activeList.length === 0) return;
+    const res = await onTransfer({
+      transfers: activeList,
+      operator: user ? user.name : '工作人員'
+    });
+    if (res && res.success) {
+      setMsg('調撥完成！');
+      setQuantities({});
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+  if (inventory.length === 0) {
+    return React.createElement("div", {
+      className: "max-w-md mx-auto my-12 p-8 text-center bg-white rounded-3xl border border-slate-200 shadow-card space-y-3"
+    });
+  }
+  return React.createElement("div", {
+    className: "max-w-4xl mx-auto space-y-4"
+  });
+}
+
+// =========================================================================
+// 營收與分帳分析中心 (今日戰報 / 當月統計 / 市集場次分析 / 收攤日結)
+// =========================================================================
+function RevenueSection({
+  onFetchTodaySales,
+  onFetchMonthSales,
+  onFetchEventSales,
+  onFetchAllEvents,
+  onSaveDailyReport,
+  onVoidSale,
+  onSyncSheets,
+  user
+}) {
+  const [viewTab, setViewTab] = useState('today'); // 'today' | 'month' | 'event'
+  const [selectedMonth, setSelectedMonth] = useState(() => formatTaiwanTime(new Date(), 'date').slice(0, 7)); // 'YYYY-MM'
+  const [selectedEvent, setSelectedEvent] = useState('ALL');
+  const [eventsList, setEventsList] = useState([]);
+  const [todayData, setTodayData] = useState({
+    totalRevenue: 0,
+    totalCost: 0,
+    totalProfit: 0,
+    profitMargin: 0,
+    totalOrders: 0,
+    totalItemsSold: 0,
+    paymentBreakdown: {
+      "現金": 0,
+      "LinePay": 0,
+      "街口": 0,
+      "轉帳": 0,
+      "公關贈送": 0
+    },
+    recentSales: [],
+    ownerBreakdown: {},
+    itemRanking: []
+  });
+  const [monthData, setMonthData] = useState(null);
+  const [eventData, setEventData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
+  const [expandedPartner, setExpandedPartner] = useState(null);
+  const [showEodModal, setShowEodModal] = useState(false);
+  const [eodEventInput, setEodEventInput] = useState('現場出攤');
+  const [isClosingEod, setIsClosingEod] = useState(false);
+  const exportToCsv = (filename, headers, rows) => {
+    const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(row => row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(','))].join('\r\n');
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;'
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  const handleExportPartnerSalesCsv = (partnerName, records = [], prefix = '今日') => {
+    const headers = ["訂單編號", "交易時間 (台灣時間)", "活動場次", "商品歸屬攤主", "商品名稱", "規格尺寸", "售出數量", "標價單價", "折讓", "實收分帳金額", "進貨成本", "毛利", "付款方式", "操作員"];
+    const rows = records.map(r => [r.orderId || '', r.timestamp ? formatTaiwanTime(r.timestamp, 'full') : '', r.eventName || '', partnerName, r.productName || '', r.variantName || '', r.qty || 1, r.originalPrice || 0, r.discount || 0, r.realSubtotal || 0, r.cost || 0, (r.realSubtotal || 0) - (r.cost || 0) * (r.qty || 1), r.paymentMethod || '現金', r.operator || '']);
+    const dateStr = formatTaiwanTime(new Date(), 'date');
+    exportToCsv(`感情失敗之友會_夥伴分帳明細_${prefix}_${partnerName}_${dateStr}.csv`, headers, rows);
+  };
+  const loadToday = async () => {
+    setLoading(true);
+    try {
+      const res = await (onFetchTodaySales ? onFetchTodaySales() : realtime.getTodaySales());
+      if (res && res.success) {
+        setTodayData(res);
+      }
+    } catch (e) {
+      console.error("載入今日營收失敗:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const loadMonth = async m => {
+    setLoading(true);
+    try {
+      const target = m || selectedMonth;
+      const res = await (onFetchMonthSales ? onFetchMonthSales(target) : realtime.getMonthSales(target));
+      if (res && res.success) {
+        setMonthData(res);
+      }
+    } catch (e) {
+      console.error("載入月度營收失敗:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const loadEvent = async ev => {
+    setLoading(true);
+    try {
+      const target = ev !== undefined ? ev : selectedEvent;
+      const res = await (onFetchEventSales ? onFetchEventSales(target) : realtime.getEventSales(target));
+      if (res && res.success) {
+        setEventData(res);
+      }
+    } catch (e) {
+      console.error("載入活動場次營收失敗:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const loadEventsList = async () => {
+    try {
+      const list = await (onFetchAllEvents ? onFetchAllEvents() : realtime.getAllEvents());
+      setEventsList(list || []);
+    } catch (e) {
+      console.error("載入活動列表失敗:", e);
+    }
+  };
+  useEffect(() => {
+    loadToday();
+    loadEventsList();
+    const unsub = realtime.subscribeSales(() => {
+      loadToday();
+      if (viewTab === 'month') loadMonth(selectedMonth);
+      if (viewTab === 'event') loadEvent(selectedEvent);
+    });
+    return () => unsub && unsub();
+  }, []);
+  useEffect(() => {
+    if (viewTab === 'month') {
+      loadMonth(selectedMonth);
+    } else if (viewTab === 'event') {
+      loadEvent(selectedEvent);
+      loadEventsList();
+    } else {
+      loadToday();
+    }
+  }, [viewTab, selectedMonth, selectedEvent]);
+  const changeMonth = offset => {
+    const [y, m] = selectedMonth.split('-').map(Number);
+    const d = new Date(y, m - 1 + offset, 1);
+    const nextMonthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    setSelectedMonth(nextMonthStr);
+  };
+  const handleVoid = async oid => {
+    if (!confirm(`確定要作廢訂單 ${oid} 並將商品數量回補至現場庫存？`)) return;
+    await onVoidSale(oid, user ? user.name : 'admin');
+    loadToday();
+  };
+  const handleSyncSheets = async () => {
+    setSyncing(true);
+    setSyncMsg('');
+    try {
+      const res = await onSyncSheets();
+      if (res && res.success) {
+        setSyncMsg('已成功將今日銷售與庫存同步備份至 Google 試算表！');
+      } else {
+        setSyncMsg('同步失敗：' + (res?.error || '請檢查 GAS 設定'));
+      }
+    } catch (e) {
+      setSyncMsg('同步錯誤：' + e.message);
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMsg(''), 5000);
+    }
+  };
+  const handleDoEodCloseout = async () => {
+    setIsClosingEod(true);
+    try {
+      const eodPayload = {
+        ...todayData,
+        eventName: eodEventInput || '現場出攤',
+        operator: user ? user.name : '攤主'
+      };
+      const saveRes = await (onSaveDailyReport ? onSaveDailyReport(eodPayload) : realtime.saveDailyReport(eodPayload));
+      if (saveRes && saveRes.success) {
+        setShowEodModal(false);
+        setSyncMsg(`【${todayData.date}】收攤日結完成！正在同步至 Google 試算表...`);
+        handleSyncSheets();
+      } else {
+        alert('收攤日結失敗：' + (saveRes?.error || '請稍後重試'));
+      }
+    } catch (e) {
+      alert('日結發生錯誤：' + e.message);
+    } finally {
+      setIsClosingEod(false);
+    }
+  };
+  const handleExportTodaySalesCsv = () => {
+    const headers = ["訂單編號", "銷售時間 (台灣時間)", "商品明細", "原始金額", "折讓金額", "實收金額", "支付方式", "操作員", "狀態"];
+    const rows = (todayData.recentSales || []).map(s => [s.order_id, s.timestamp ? formatTaiwanTime(s.timestamp, 'full') : '', (s.items || []).map(i => `${i.productName}(${i.variantName})x${i.qty}`).join('; '), s.totalAmount, s.discountAmount || 0, s.finalAmount || s.final_amount || 0, s.paymentMethod || s.payment_method || '現金', s.operator || '', s.status || '有效']);
+    const dateStr = formatTaiwanTime(new Date(), 'date');
+    exportToCsv(`感情失敗之友會_今日銷售交易明細_${dateStr}.csv`, headers, rows);
+  };
+  const handleExportMonthSalesCsv = () => {
+    const m = monthData || todayData;
+    const headers = ["訂單編號", "銷售時間 (台灣時間)", "活動場次", "商品名稱", "規格尺寸", "售出件數", "標價單價", "折讓", "實收分帳金額", "進貨成本", "毛利", "付款方式", "操作員"];
+    const rows = [];
+    (m.recentSales || []).filter(s => s.status !== '已作廢').forEach(s => {
+      const pm = s.paymentMethod || s.payment_method || '現金';
+      const isPR = pm === '公關贈送';
+      const orderTot = Number(s.totalAmount || s.total_amount || 0);
+      const orderFin = isPR ? 0 : Number(s.finalAmount !== undefined ? s.finalAmount : s.final_amount !== undefined ? s.final_amount : orderTot - Number(s.discountAmount || 0));
+      const ratio = orderTot > 0 ? orderFin / orderTot : isPR ? 0 : 1;
+      (s.items || []).forEach(it => {
+        const q = Number(it.qty) || 1;
+        const p = Number(it.price) || 0;
+        const c = Number(it.cost) || 0;
+        const realSub = isPR ? 0 : Math.round(p * q * ratio);
+        const costTot = c * q;
+        rows.push([s.order_id, s.timestamp ? formatTaiwanTime(s.timestamp, 'full') : '', s.eventName || s.event_name || '一般現場', it.productName || '商品', it.variantName || '一般', q, p, p * q - realSub, realSub, costTot, realSub - costTot, pm, s.operator || '']);
+      });
+    });
+    exportToCsv(`感情失敗之友會_${selectedMonth}_全月交易明細.csv`, headers, rows);
+  };
+  const handleExportEventSalesCsv = () => {
+    const ed = eventData || todayData;
+    const headers = ["訂單編號", "銷售時間 (台灣時間)", "活動場次", "商品名稱", "規格尺寸", "售出件數", "實收分帳金額", "進貨成本", "毛利", "付款方式", "操作員"];
+    const rows = [];
+    (ed.recentSales || []).filter(s => s.status !== '已作廢').forEach(s => {
+      const pm = s.paymentMethod || s.payment_method || '現金';
+      const isPR = pm === '公關贈送';
+      const orderTot = Number(s.totalAmount || s.total_amount || 0);
+      const orderFin = isPR ? 0 : Number(s.finalAmount !== undefined ? s.finalAmount : s.final_amount !== undefined ? s.final_amount : orderTot - Number(s.discountAmount || 0));
+      const ratio = orderTot > 0 ? orderFin / orderTot : isPR ? 0 : 1;
+      (s.items || []).forEach(it => {
+        const q = Number(it.qty) || 1;
+        const p = Number(it.price) || 0;
+        const c = Number(it.cost) || 0;
+        const realSub = isPR ? 0 : Math.round(p * q * ratio);
+        const costTot = c * q;
+        rows.push([s.order_id, s.timestamp ? formatTaiwanTime(s.timestamp, 'full') : '', s.eventName || s.event_name || '一般現場', it.productName || '商品', it.variantName || '一般', q, realSub, costTot, realSub - costTot, pm, s.operator || '']);
+      });
+    });
+    exportToCsv(`感情失敗之友會_市集場次_${selectedEvent}_銷售明細.csv`, headers, rows);
+  };
+  const currentActiveData = viewTab === 'month' ? monthData || todayData : viewTab === 'event' ? eventData || todayData : todayData;
+  const totalRev = Number(currentActiveData?.totalRevenue || 0);
+  const totalCost = Number(currentActiveData?.totalCost || 0);
+  const totalProfit = Number(currentActiveData?.totalProfit || totalRev - totalCost);
+  const profitMargin = currentActiveData?.profitMargin || (totalRev > 0 ? (totalProfit / totalRev * 100).toFixed(1) : 0);
+  const totalItems = Number(currentActiveData?.totalItemsSold || 0);
+  const totalOrders = Number(currentActiveData?.totalOrders || 0);
+  const cashRev = Number(currentActiveData?.paymentBreakdown?.['現金'] || 0);
+  return React.createElement("div", {
+    className: "max-w-4xl mx-auto space-y-4"
+  }, viewTab === 'today' && React.createElement("div", {
+    className: "space-y-4 animate-in fade-in"
+  }, syncMsg && React.createElement("div", {
+    className: "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl"
+  }, syncMsg)), viewTab === 'month' && React.createElement("div", {
+    className: "space-y-4 animate-in fade-in"
+  }), showEodModal && React.createElement("div", {
+    className: "fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+  }));
+}
+
+// =========================================================================
+// 商品與規格管理 (Product & Variant Management Module)
+// =========================================================================
+function ProductManageSection({
+  onAddProduct,
+  inventory = [],
+  products = [],
+  onSyncSheets,
+  onClearData,
+  onDeleteProduct,
+  onDeleteSku,
+  user
+}) {
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState('衣服');
+  const [ownerName, setOwnerName] = useState(user?.name || '攤主');
+  const [basePrice, setBasePrice] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
+  const fileInputRef = useRef(null);
+  useEffect(() => {
+    if (user?.name && !ownerName) setOwnerName(user.name);
+  }, [user]);
+  const [variants, setVariants] = useState([{
+    variantName: 'S',
+    price: '',
+    homeQty: 10,
+    stallQty: 5,
+    safetyStock: 2
+  }, {
+    variantName: 'M',
+    price: '',
+    homeQty: 15,
+    stallQty: 8,
+    safetyStock: 3
+  }, {
+    variantName: 'L',
+    price: '',
+    homeQty: 15,
+    stallQty: 8,
+    safetyStock: 3
+  }, {
+    variantName: 'XL',
+    price: '',
+    homeQty: 10,
+    stallQty: 4,
+    safetyStock: 2
+  }, {
+    variantName: '2XL',
+    price: '',
+    homeQty: 5,
+    stallQty: 2,
+    safetyStock: 2
+  }]);
+  const [msg, setMsg] = useState('');
+  const handleImageSelect = async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsCompressing(true);
+    try {
+      const compressedBase64 = await compressImageFile(file, 360, 0.75);
+      setImageUrl(compressedBase64);
+    } catch (err) {
+      alert('圖片處理失敗，請改用其他圖片。');
+    } finally {
+      setIsCompressing(false);
+    }
+  };
+  const updateVariant = (idx, field, val) => {
+    setVariants(prev => {
+      const c = [...prev];
+      c[idx] = {
+        ...c[idx],
+        [field]: val
+      };
+      return c;
+    });
+  };
+  const handleFormSubmit = e => {
+    e.preventDefault();
+    if (!name.trim() || !basePrice || !ownerName.trim()) return;
+    setShowConfirmModal(true);
+  };
+  const executeConfirmUpload = async () => {
+    setIsSubmitting(true);
+    try {
+      const res = await onAddProduct({
+        name: name.trim(),
+        category,
+        owner_name: ownerName.trim(),
+        basePrice: Number(basePrice),
+        image_url: imageUrl,
+        variants,
+        operator: user ? user.name : 'admin'
+      });
+      if (res && res.success) {
+        setMsg(`商品「${name}」(歸屬：${ownerName}) 已成功新增！`);
+        setName('');
+        setBasePrice('');
+        setImageUrl('');
+        setShowConfirmModal(false);
+        setTimeout(() => setMsg(''), 4000);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncMsg('');
+    try {
+      const res = await onSyncSheets();
+      if (res && res.success) {
+        setSyncMsg('已成功將所有商品與多規格資料同步至 Google 試算表！');
+      } else {
+        setSyncMsg('同步失敗：' + (res?.error || '請檢查 GAS 連線'));
+      }
+    } catch (e) {
+      setSyncMsg('同步錯誤：' + e.message);
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMsg(''), 5000);
+    }
+  };
+  const handleExportProductsCsv = () => {
+    const headers = ["商品編號", "商品名稱", "分類", "商品歸屬攤主", "基準單價", "狀態", "建立時間"];
+    const rows = products.map(p => [p.product_id, p.name, p.category, p.owner_name || '共同', p.base_price, p.status || 'active', p.created_at || '']);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    exportToCsv(`感情失敗之友會_商品名冊_${dateStr}.csv`, headers, rows);
+  };
+  const handleClearAllProducts = async () => {
+    if (!confirm('警告：這將會徹底清空資料庫中「所有商品、庫存與歷史銷售」，讓您從 0 開始重新測試！\n\n確定要清空嗎？')) return;
+    await onClearData();
+    setMsg('已成功清空所有商品與庫存資料！現在為乾淨初始狀態。');
+    setTimeout(() => setMsg(''), 5000);
+  };
+  const totalStallInit = variants.reduce((s, v) => s + (Number(v.stallQty) || 0), 0);
+  const totalHomeInit = variants.reduce((s, v) => s + (Number(v.homeQty) || 0), 0);
+  return React.createElement("div", {
+    className: "max-w-4xl mx-auto space-y-4 pb-12"
+  }, syncMsg && React.createElement("div", {
+    className: "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2"
+  }), showConfirmModal && React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 animate-in fade-in"
+  }));
+}
+
+// =========================================================================
+// 成員與會員審核系統 (Member & Whitelist Management Module)
+// =========================================================================
+function MemberManageSection({
+  user,
+  onSyncSheets
+}) {
+  if (!user || user.role !== '系統管理者') {
+    return React.createElement("div", {
+      className: "max-w-md mx-auto my-12 p-8 text-center bg-white rounded-3xl border border-slate-200 shadow-card space-y-4"
+    });
+  }
+  const [usersList, setUsersList] = useState([]);
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('全部');
+  const [filterRole, setFilterRole] = useState('全部');
+  const [newEmail, setNewEmail] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newRole, setNewRole] = useState('一般使用者');
+  const [msg, setMsg] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  useEffect(() => {
+    const unsub = realtime.subscribeUsers(list => {
+      setUsersList(list);
+    });
+    return () => unsub();
+  }, []);
+  const pendingUsers = usersList.filter(u => u.status === '待審核');
+  const approvedUsers = usersList.filter(u => u.status === '已核准');
+  const disabledUsers = usersList.filter(u => u.status === '已停用');
+  const handleApprove = async (email, role = '一般使用者') => {
+    await realtime.updateUserRole(email, role, '已核准');
+    setMsg(`已核准開通 ${email}！對方手機將自動秒進系統。`);
+    setTimeout(() => setMsg(''), 4000);
+  };
+  const handleReject = async email => {
+    await realtime.updateUserRole(email, '一般使用者', '已停用');
+    setMsg(`已停用 / 拒絕 ${email} 的存取權限。`);
+    setTimeout(() => setMsg(''), 4000);
+  };
+  const handleDelete = async email => {
+    if (!confirm(`確定要將成員「${email}」從名單中徹底刪除？`)) return;
+    await realtime.deleteMember(email);
+    setMsg(`已刪除成員 ${email}`);
+    setTimeout(() => setMsg(''), 4000);
+  };
+  const handleAddWhitelist = async e => {
+    e.preventDefault();
+    if (!newEmail.trim()) return;
+    setIsAdding(true);
+    try {
+      await realtime.preAddMember(newEmail, newName, newRole, '已核准');
+      setMsg(`成功將「${newEmail}」預先加入白名單並直接核准！`);
+      setNewEmail('');
+      setNewName('');
+      setTimeout(() => setMsg(''), 4000);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await onSyncSheets();
+      if (res && res.success) {
+        setMsg('已成功將成員名單備份至 Google 試算表！');
+      } else {
+        setMsg('同步失敗：' + (res?.error || '請檢查 GAS 連線'));
+      }
+    } catch (e) {
+      setMsg('同步錯誤：' + e.message);
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setMsg(''), 5000);
+    }
+  };
+  const handleExportUsersCsv = () => {
+    const headers = ["Google Email", "姓名/稱呼", "角色身分", "審核狀態", "註冊時間"];
+    const rows = usersList.map(u => [u.email, u.name || '', u.role || '一般使用者', u.status || '已核准', u.created_at || '']);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    exportToCsv(`感情失敗之友會_成員名冊_${dateStr}.csv`, headers, rows);
+  };
+  const filteredList = usersList.filter(u => {
+    const matchSearch = (u.name || '').toLowerCase().includes(search.toLowerCase()) || (u.email || '').toLowerCase().includes(search.toLowerCase());
+    const matchStatus = filterStatus === '全部' || u.status === filterStatus;
+    const matchRole = filterRole === '全部' || u.role === filterRole;
+    return matchSearch && matchStatus && matchRole;
+  });
+  return React.createElement("div", {
+    className: "max-w-5xl mx-auto space-y-5"
+  }, msg && React.createElement("div", {
+    className: "p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-2xl flex items-center gap-2 animate-in fade-in"
+  }), pendingUsers.length > 0 && React.createElement("div", {
+    className: "bg-white border-2 border-rose-400 rounded-3xl p-5 shadow-card space-y-3 animate-in fade-in"
+  }));
+}
+
+// =========================================================================
+// 系統設定 ＆ 檔案匯入/匯出 ＆ 全系統一鍵備份 ＆ 清空測試資料
+// =========================================================================
+function SettingsDialog({
+  onClose,
+  user,
+  onReload,
+  onFullSyncSheets,
+  onClearAllData,
+  inventory,
+  products
+}) {
+  const [importMsg, setImportMsg] = useState('');
+  const [syncingAll, setSyncingAll] = useState(false);
+  const [allSyncMsg, setAllSyncMsg] = useState('');
+  const [isClearing, setIsClearing] = useState(false);
+  const configFileRef = useRef(null);
+  const handleImportConfigFile = e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = event => {
+      try {
+        const configObj = JSON.parse(event.target.result);
+        realtime.importConfigFile(configObj);
+        setImportMsg('設定檔匯入成功！系統將自動重新載入...');
+        setTimeout(() => {
+          onClose();
+          onReload();
+        }, 1200);
+      } catch (err) {
+        setImportMsg('JSON 解析失敗，請確認檔案格式是否正確。');
+      }
+    };
+    reader.readAsText(file);
+  };
+  const handleDownloadConfigBackup = () => {
+    const currentConfig = {
+      FIREBASE_CONFIG: window.STALL_CONFIG?.FIREBASE_CONFIG || realtime.getFirebaseConfig(),
+      GAS_API_URL: realtime.getGasUrl()
+    };
+    const blob = new Blob([JSON.stringify(currentConfig, null, 2)], {
+      type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'stall-config.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const handleFullSync = async () => {
+    setSyncingAll(true);
+    setAllSyncMsg('');
+    try {
+      const res = await onFullSyncSheets();
+      if (res && res.success) {
+        setAllSyncMsg('已將【商品 + 即時庫存 + 今日銷售 + 成員白名單】全數同步備份至 Google 試算表！');
+      } else {
+        setAllSyncMsg('同步失敗：' + (res?.error || '請檢查 GAS 連線'));
+      }
+    } catch (e) {
+      setAllSyncMsg('同步錯誤：' + e.message);
+    } finally {
+      setSyncingAll(false);
+      setTimeout(() => setAllSyncMsg(''), 6000);
+    }
+  };
+  const handleClearAll = async () => {
+    if (!confirm('警告：這將會徹底清空資料庫中「所有商品、庫存與歷史銷售訂單」，重設為完全空白的初始狀態！\n\n您確定要清空嗎？')) return;
+    setIsClearing(true);
+    try {
+      await onClearAllData();
+      setImportMsg('已成功清空所有測試資料！');
+      setTimeout(() => {
+        onClose();
+      }, 800);
+    } finally {
+      setIsClearing(false);
+    }
+  };
+  return React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in"
+  });
+}
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
