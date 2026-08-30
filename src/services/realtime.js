@@ -9,7 +9,8 @@ export const STORAGE_KEYS = {
   LOCAL_PRODUCTS: 'stall_local_products',
   LOCAL_INVENTORY: 'stall_local_inventory',
   LOCAL_SALES: 'stall_local_sales',
-  LOCAL_USERS: 'stall_local_users'
+  LOCAL_USERS: 'stall_local_users',
+  LOCAL_EVENTS: 'stall_local_events'
 };
 
 class RealtimeService {
@@ -97,6 +98,136 @@ class RealtimeService {
     user ? localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user)) : localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
   }
 
+  // =========================================================================
+  //  出攤活動與場次管理 (Events & Expenses)
+  // =========================================================================
+  async getEvents() {
+    if (this.isFirebaseReady && this.db) {
+      const snap = await this.db.collection('events_master').orderBy('created_at', 'desc').get();
+      const list = [];
+      snap.forEach(d => list.push(d.data()));
+      return list;
+    } else {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_EVENTS) || '[]');
+    }
+  }
+
+  subscribeEvents(onUpdate) {
+    if (this.isFirebaseReady && this.db) {
+      return this.db.collection('events_master').onSnapshot(snap => {
+        const list = [];
+        snap.forEach(d => list.push(d.data()));
+        onUpdate(list);
+      }, () => {
+        onUpdate(JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_EVENTS) || '[]'));
+      });
+    } else {
+      onUpdate(JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_EVENTS) || '[]'));
+      return () => {};
+    }
+  }
+
+  async createEvent(eventData) {
+    const eventId = eventData.event_id || `EVT-${Date.now()}`;
+    const payload = {
+      event_id: eventId,
+      name: eventData.name.trim(),
+      start_date: eventData.start_date || '',
+      end_date: eventData.end_date || '',
+      booth_cost: Number(eventData.booth_cost) || 0,
+      expenses: eventData.expenses || [],
+      status: eventData.status || '進行中',
+      created_at: new Date().toISOString()
+    };
+
+    if (this.isFirebaseReady && this.db) {
+      await this.db.collection('events_master').doc(eventId).set(payload, { merge: true });
+      return { success: true, eventId, event: payload };
+    } else {
+      let events = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_EVENTS) || '[]');
+      events.unshift(payload);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_EVENTS, JSON.stringify(events));
+      return { success: true, eventId, event: payload };
+    }
+  }
+
+  async addEventExpense(eventId, expenseItem) {
+    const expense = {
+      id: `EXP-${Date.now()}`,
+      title: expenseItem.title.trim(),
+      amount: Number(expenseItem.amount) || 0,
+      category: expenseItem.category || '臨時租借/耗材',
+      date: new Date().toISOString()
+    };
+
+    if (this.isFirebaseReady && this.db) {
+      const ref = this.db.collection('events_master').doc(eventId);
+      await ref.update({
+        expenses: window.firebase.firestore.FieldValue.arrayUnion(expense)
+      });
+      return { success: true, expense };
+    } else {
+      let events = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_EVENTS) || '[]');
+      const target = events.find(e => e.event_id === eventId);
+      if (target) {
+        if (!target.expenses) target.expenses = [];
+        target.expenses.push(expense);
+        localStorage.setItem(STORAGE_KEYS.LOCAL_EVENTS, JSON.stringify(events));
+      }
+      return { success: true, expense };
+    }
+  }
+
+  async closeEventAndReturnStock(eventId, eventName, operator) {
+    // 取得當前現場所有未售出的庫存，整批回補至倉庫，並將現場庫存歸零
+    if (this.isFirebaseReady && this.db) {
+      const snap = await this.db.collection('inventory_master').where('stall_qty', '>', 0).get();
+      const batch = this.db.batch();
+      snap.forEach(doc => {
+        const data = doc.data();
+        const returnQty = data.stall_qty || 0;
+        batch.update(doc.ref, {
+          home_qty: window.firebase.firestore.FieldValue.increment(returnQty),
+          stall_qty: 0,
+          updated_at: new Date().toISOString()
+        });
+      });
+
+      if (eventId) {
+        batch.update(this.db.collection('events_master').doc(eventId), {
+          status: '已撤攤結算',
+          closed_at: new Date().toISOString(),
+          closed_by: operator
+        });
+      }
+      await batch.commit();
+      return { success: true };
+    } else {
+      let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
+      inventory.forEach(item => {
+        if (item.stall_qty > 0) {
+          item.home_qty = (item.home_qty || 0) + item.stall_qty;
+          item.stall_qty = 0;
+          item.total_qty = item.home_qty;
+        }
+      });
+      localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
+
+      let events = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_EVENTS) || '[]');
+      const ev = events.find(e => e.event_id === eventId || e.name === eventName);
+      if (ev) {
+        ev.status = '已撤攤結算';
+        ev.closed_at = new Date().toISOString();
+        ev.closed_by = operator;
+        localStorage.setItem(STORAGE_KEYS.LOCAL_EVENTS, JSON.stringify(events));
+      }
+      return { success: true };
+    }
+  }
+
+  // =========================================================================
+  //  商品與庫存管理 (Products & Inventory)
+  // =========================================================================
   async deleteInventoryItem(skuId) {
     if (this.isFirebaseReady && this.db) {
       const invRef = this.db.collection('inventory_master').doc(skuId);
@@ -149,10 +280,11 @@ class RealtimeService {
     }
   }
 
-  async clearAllTestData(options = { clearProducts: true, clearInventory: true, clearSales: true }) {
+  async clearAllTestData(options = { clearProducts: true, clearInventory: true, clearSales: true, clearEvents: false }) {
     if (options.clearProducts) localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, '[]');
     if (options.clearInventory) localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, '[]');
     if (options.clearSales) localStorage.setItem(STORAGE_KEYS.LOCAL_SALES, '[]');
+    if (options.clearEvents) localStorage.setItem(STORAGE_KEYS.LOCAL_EVENTS, '[]');
 
     if (this.isFirebaseReady && this.db) {
       const batch = this.db.batch();
@@ -168,11 +300,18 @@ class RealtimeService {
         const sSnap = await this.db.collection('sales_orders').get();
         sSnap.forEach(d => batch.delete(d.ref));
       }
+      if (options.clearEvents) {
+        const eSnap = await this.db.collection('events_master').get();
+        eSnap.forEach(d => batch.delete(d.ref));
+      }
       await batch.commit();
     }
     return { success: true };
   }
 
+  // =========================================================================
+  //  登入與權限管理 (Auth & Users)
+  // =========================================================================
   async loginWithGooglePopup() {
     if (!this.isFirebaseReady || !this.auth) {
       const demoUser = {
@@ -196,9 +335,7 @@ class RealtimeService {
     } catch(err) {
       const currentHost = window.location.hostname || '目前網域';
       if (err.code === 'auth/unauthorized-domain') {
-        throw new Error(`目前網域「${currentHost}」尚未加入 Firebase 授權網域！\n\n【30秒解決方式】：\n1. 前往 Firebase 控制台 -> Authentication\n2. 點選「設定 (Settings)」分頁 ->「授權網域 (Authorized domains)」\n3. 點「新增網域」並輸入「${currentHost}」即可！\n\n或是您也可以直接使用下方的「信箱表單」登入！`);
-      } else if (err.code === 'auth/configuration-not-found') {
-        throw new Error("您的 Firebase 尚未啟用 Google 登入。\n請至 Firebase 控制台 -> Authentication -> 登入方式 -> 啟用「Google」，或直接使用下方的「信箱快速驗證」即可！");
+        throw new Error(`目前網域「${currentHost}」尚未加入 Firebase 授權網域！\n\n【解決方式】：請至 Firebase 控制台 Authentication -> 授權網域，加入「${currentHost}」即可！`);
       } else if (err.code === 'auth/popup-closed-by-user') {
         throw new Error("登入視窗已關閉");
       } else {
@@ -394,10 +531,26 @@ class RealtimeService {
     }
   }
 
+  // =========================================================================
+  //  收銀結帳 (支援市集扣現場、網路扣倉庫)
+  // =========================================================================
   async checkoutSale(orderData) {
-    const { items, paymentMethod, discountAmount, originalTotal, finalTotal, operator, eventName } = orderData;
+    const {
+      items,
+      paymentMethod,
+      discountAmount,
+      originalTotal,
+      finalTotal,
+      operator,
+      channelType = 'market', // 'market' (市集現場) or 'online' (網路通路)
+      channelName = '市集現場', // '2026 大港開唱' or '7-11 賣貨便' or '官方網站' etc.
+      eventName = ''
+    } = orderData;
+
     const now = new Date();
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const effectiveEventName = channelType === 'market' ? (eventName || channelName || '一般現場') : channelName;
+
     const saleRecord = {
       order_id: orderId,
       timestamp: now.toISOString(),
@@ -408,7 +561,9 @@ class RealtimeService {
       discount_amount: discountAmount,
       final_amount: finalTotal,
       operator: operator || '現場收銀',
-      eventName: eventName || '一般現場',
+      channelType,
+      channelName,
+      eventName: effectiveEventName,
       status: '已完成'
     };
 
@@ -419,11 +574,21 @@ class RealtimeService {
 
       for (const item of items) {
         const invRef = this.db.collection('inventory_master').doc(item.skuId);
-        batch.update(invRef, {
-          stall_qty: window.firebase.firestore.FieldValue.increment(-item.qty),
-          total_qty: window.firebase.firestore.FieldValue.increment(-item.qty),
-          updated_at: new Date().toISOString()
-        });
+        if (channelType === 'online') {
+          // 網路販售：扣除「家內/倉庫庫存」
+          batch.update(invRef, {
+            home_qty: window.firebase.firestore.FieldValue.increment(-item.qty),
+            total_qty: window.firebase.firestore.FieldValue.increment(-item.qty),
+            updated_at: new Date().toISOString()
+          });
+        } else {
+          // 市集現場：扣除「現場攤位庫存」
+          batch.update(invRef, {
+            stall_qty: window.firebase.firestore.FieldValue.increment(-item.qty),
+            total_qty: window.firebase.firestore.FieldValue.increment(-item.qty),
+            updated_at: new Date().toISOString()
+          });
+        }
       }
       await batch.commit();
       return { success: true, orderId };
@@ -436,8 +601,12 @@ class RealtimeService {
       items.forEach(sold => {
         const target = inventory.find(i => i.sku_id === sold.skuId);
         if (target) {
-          target.stall_qty = Math.max(0, target.stall_qty - sold.qty);
-          target.total_qty = (target.home_qty || 0) + target.stall_qty;
+          if (channelType === 'online') {
+            target.home_qty = Math.max(0, (target.home_qty || 0) - sold.qty);
+          } else {
+            target.stall_qty = Math.max(0, (target.stall_qty || 0) - sold.qty);
+          }
+          target.total_qty = (target.home_qty || 0) + (target.stall_qty || 0);
         }
       });
       localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
@@ -445,7 +614,7 @@ class RealtimeService {
     }
   }
 
-  async transferInventory(transfers, direction, operator) {
+  async transferInventory(transfers, direction, operator, eventName = '') {
     if (this.isFirebaseReady && this.db) {
       const batch = this.db.batch();
       for (const t of transfers) {
@@ -480,6 +649,7 @@ class RealtimeService {
             target.home_qty += qty;
             target.stall_qty = Math.max(0, target.stall_qty - qty);
           }
+          target.total_qty = target.home_qty + target.stall_qty;
         }
       });
       localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
@@ -530,12 +700,19 @@ class RealtimeService {
   async getAllEvents() {
     const events = new Set();
     if (this.isFirebaseReady && this.db) {
-      const snap = await this.db.collection('sales_orders').get();
+      const snap = await this.db.collection('events_master').get();
       snap.forEach(doc => {
+        const name = doc.data().name;
+        if (name) events.add(name);
+      });
+      const sSnap = await this.db.collection('sales_orders').get();
+      sSnap.forEach(doc => {
         const ev = doc.data().eventName;
         if (ev) events.add(ev);
       });
     } else {
+      const localEvents = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_EVENTS) || '[]');
+      localEvents.forEach(e => { if (e.name) events.add(e.name); });
       const allSales = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_SALES) || '[]');
       allSales.forEach(s => {
         if (s.eventName) events.add(s.eventName);
@@ -559,13 +736,22 @@ class RealtimeService {
         voided_by: operator
       });
 
+      const isOnline = orderData.channelType === 'online';
       for (const item of (orderData.items || [])) {
         const invRef = this.db.collection('inventory_master').doc(item.skuId);
-        batch.update(invRef, {
-          stall_qty: window.firebase.firestore.FieldValue.increment(item.qty),
-          total_qty: window.firebase.firestore.FieldValue.increment(item.qty),
-          updated_at: new Date().toISOString()
-        });
+        if (isOnline) {
+          batch.update(invRef, {
+            home_qty: window.firebase.firestore.FieldValue.increment(item.qty),
+            total_qty: window.firebase.firestore.FieldValue.increment(item.qty),
+            updated_at: new Date().toISOString()
+          });
+        } else {
+          batch.update(invRef, {
+            stall_qty: window.firebase.firestore.FieldValue.increment(item.qty),
+            total_qty: window.firebase.firestore.FieldValue.increment(item.qty),
+            updated_at: new Date().toISOString()
+          });
+        }
       }
       await batch.commit();
       return { success: true };
@@ -578,12 +764,17 @@ class RealtimeService {
         target.voided_by = operator;
         localStorage.setItem(STORAGE_KEYS.LOCAL_SALES, JSON.stringify(sales));
 
+        const isOnline = target.channelType === 'online';
         let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
         (target.items || []).forEach(item => {
           const invItem = inventory.find(i => i.sku_id === item.skuId);
           if (invItem) {
-            invItem.stall_qty += item.qty;
-            invItem.total_qty = (invItem.home_qty || 0) + invItem.stall_qty;
+            if (isOnline) {
+              invItem.home_qty += item.qty;
+            } else {
+              invItem.stall_qty += item.qty;
+            }
+            invItem.total_qty = (invItem.home_qty || 0) + (invItem.stall_qty || 0);
           }
         });
         localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
@@ -598,7 +789,7 @@ class RealtimeService {
       return { success: false, error: "未設定 Google Apps Script URL，無法連線試算表" };
     }
 
-    let products = [], inventory = [], sales = [], users = [];
+    let products = [], inventory = [], sales = [], users = [], events = [];
     if (this.isFirebaseReady && this.db) {
       if (type === 'all' || type === 'products') {
         const pSnap = await this.db.collection('products').get();
@@ -616,17 +807,22 @@ class RealtimeService {
         const uSnap = await this.db.collection('users').get();
         uSnap.forEach(d => users.push(d.data()));
       }
+      if (type === 'all' || type === 'events') {
+        const eSnap = await this.db.collection('events_master').get();
+        eSnap.forEach(d => events.push(d.data()));
+      }
     } else {
       products = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_PRODUCTS) || '[]');
       inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || '[]');
       sales = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_SALES) || '[]');
       users = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]');
+      events = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_EVENTS) || '[]');
     }
 
     try {
       const payload = {
         action: 'fullSync',
-        data: { products, inventory, sales, users, syncType: type, timestamp: new Date().toISOString() }
+        data: { products, inventory, sales, users, events, syncType: type, timestamp: new Date().toISOString() }
       };
 
       const resp = await fetch(gasUrl, {

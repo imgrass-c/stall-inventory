@@ -5,6 +5,7 @@ import MonthTab from './MonthTab';
 import EventTab from './EventTab';
 import EodModal from './EodModal';
 import { exportToCsv, formatTaiwanTime } from '../../utils/formatters';
+import { realtime } from '../../services/realtime';
 
 export default function RevenueView({
   onFetchTodaySales,
@@ -47,7 +48,7 @@ export default function RevenueView({
 
       const discountRatio = orderOrig > 0 ? (orderFinal / orderOrig) : (isPR ? 0 : 1);
       const sDate = s.timestamp ? formatTaiwanTime(s.timestamp, 'date') : (s.date || '未知日期');
-      const sEvent = s.eventName || '一般現場';
+      const sEvent = s.eventName || s.channelName || '一般現場';
 
       if (!dailyMap[sDate]) {
         dailyMap[sDate] = {
@@ -131,7 +132,7 @@ export default function RevenueView({
         timestamp: s.timestamp,
         date: s.date,
         orderId: s.order_id,
-        eventName: s.eventName,
+        eventName: s.eventName || s.channelName,
         paymentMethod: s.payment_method
       })))
     };
@@ -170,10 +171,19 @@ export default function RevenueView({
 
   const loadAllEventsList = async () => {
     try {
-      const list = await onFetchAllEvents();
-      setAllEvents(list || []);
-      if (list && list.length > 0 && !selectedEvent) {
-        setSelectedEvent(list[0]);
+      const masterList = await realtime.getEvents();
+      const allNames = await onFetchAllEvents();
+      
+      const combined = [...masterList];
+      allNames.forEach(name => {
+        if (!combined.some(e => (typeof e === 'object' ? e.name === name : e === name))) {
+          combined.push({ event_id: name, name, booth_cost: 0, expenses: [], status: '已結算' });
+        }
+      });
+
+      setAllEvents(combined);
+      if (combined.length > 0 && !selectedEvent) {
+        setSelectedEvent(typeof combined[0] === 'object' ? combined[0].name : combined[0]);
       }
     } catch(e) {}
   };
@@ -206,14 +216,14 @@ export default function RevenueView({
   const handleExportTodayCsv = () => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
-    const headers = ['訂單編號', '日期時間', '活動場次', '商品名稱', '商品規格', '數量', '單價', '實收金額', '付款方式', '操作員', '狀態'];
+    const headers = ['訂單編號', '日期時間', '活動場次/通路', '商品名稱', '商品規格', '數量', '單價', '實收金額', '付款方式', '操作員', '狀態'];
     const rows = [];
     todaySales.forEach(s => {
       (s.items || []).forEach(item => {
         rows.push([
           s.order_id,
           s.timestamp ? formatTaiwanTime(s.timestamp, 'datetime') : s.date,
-          s.eventName || '一般現場',
+          s.eventName || s.channelName || '一般現場',
           item.productName,
           item.variantName,
           item.qty,
@@ -225,17 +235,17 @@ export default function RevenueView({
         ]);
       });
     });
-    exportToCsv(`感情失敗之友會_今日銷售交易明細_${dateStr}.csv`, headers, rows);
+    exportToCsv(`感情失敗之友會_今日銷售明細_${dateStr}.csv`, headers, rows);
   };
 
   const handleExportMonthSalesCsv = () => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
-    const headers = ['訂單編號', '日期時間', '活動場次', '商品名稱', '規格', '主理人', '數量', '售價', '收款方式', '狀態'];
+    const headers = ['訂單編號', '日期時間', '活動場次/通路', '商品名稱', '規格', '主理人', '數量', '售價', '收款方式', '狀態'];
     const rows = (currentMonthData.salesRecords || []).map(r => [
       r.orderId,
       r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
-      r.eventName || '一般現場',
+      r.eventName || r.channelName || '一般現場',
       r.productName,
       r.variantName,
       r.owner || '攤位公家',
@@ -266,18 +276,18 @@ export default function RevenueView({
   };
 
   return (
-    <div className="flex-1 bg-surface-50 p-4 sm:p-6 overflow-y-auto space-y-4 max-w-6xl mx-auto w-full">
+    <div className="flex-1 bg-surface-50 p-3.5 sm:p-6 overflow-y-auto space-y-4 max-w-6xl mx-auto w-full">
       {/* 頂部分頁切換視角 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight">營收與分帳分析中心</h2>
-          <p className="text-xs text-slate-400 font-bold">即時財務戰報、雙夥伴利潤分帳與市集場次毛利統計</p>
+          <p className="text-xs text-slate-400 font-bold">今日即時戰報、雙夥伴利潤分帳與市集場次毛利統計</p>
         </div>
 
         <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm text-xs font-black w-full sm:w-auto">
           <button
             onClick={() => setViewTab('today')}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5 ${
+            className={`flex-1 sm:flex-none min-h-[40px] px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5 ${
               viewTab === 'today' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -286,7 +296,7 @@ export default function RevenueView({
           </button>
           <button
             onClick={() => setViewTab('month')}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5 ${
+            className={`flex-1 sm:flex-none min-h-[40px] px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5 ${
               viewTab === 'month' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -295,7 +305,7 @@ export default function RevenueView({
           </button>
           <button
             onClick={() => setViewTab('event')}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5 ${
+            className={`flex-1 sm:flex-none min-h-[40px] px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5 ${
               viewTab === 'event' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
