@@ -150,10 +150,11 @@ export default function EventTab({
         </div>
       </div>
 
-      {/* 場次明細表格 */}
+      {/* 場次明細表格 (倒序排列，最新交易排在最前) */}
       <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-card">
-        <div className="p-4 bg-surface-50 text-xs font-black text-slate-700 border-b border-slate-200">
-          場次銷售交易清單 (共 {(currentEventData.salesRecords || []).length} 筆)
+        <div className="p-4 bg-surface-50 text-xs font-black text-slate-700 border-b border-slate-200 flex justify-between items-center">
+          <span>場次銷售交易清單 (最新在最前 • 共 {(currentEventData.salesRecords || []).length} 筆)</span>
+          <span className="text-[11px] text-slate-400 font-bold">原標價 • 折讓 • 實收分帳 • 實質毛利</span>
         </div>
         <div className="overflow-x-auto max-h-80 overflow-y-auto">
           <table className="w-full text-left text-xs border-collapse">
@@ -163,46 +164,66 @@ export default function EventTab({
                 <th className="p-3 whitespace-nowrap">商品名稱與規格</th>
                 <th className="p-3 whitespace-nowrap">主理人</th>
                 <th className="p-3 text-center whitespace-nowrap">數量</th>
-                <th className="p-3 text-right whitespace-nowrap">標價</th>
+                <th className="p-3 text-right whitespace-nowrap">原標價</th>
                 <th className="p-3 text-right whitespace-nowrap text-rose-500">折讓</th>
-                <th className="p-3 text-right whitespace-nowrap text-purple-700 font-black">實收</th>
+                <th className="p-3 text-right whitespace-nowrap text-purple-700 font-black">實收分帳</th>
+                <th className="p-3 text-right whitespace-nowrap text-emerald-600 font-black">實質毛利</th>
                 <th className="p-3 whitespace-nowrap">收款方式</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
-              {(currentEventData.salesRecords || []).map((rec, idx) => (
-                <tr key={idx} className="hover:bg-slate-50 transition">
-                  <td className="p-3 text-slate-700 font-mono text-xs whitespace-nowrap">
-                    <Icons.Clock className="w-3.5 h-3.5 text-slate-400 inline mr-1" />
-                    <span>{rec.timestamp ? formatTaiwanTime(rec.timestamp, 'datetime') : rec.date}</span>
-                  </td>
-                  <td className="p-3 font-bold text-slate-900 whitespace-nowrap">
-                    {rec.productName} <span className="text-purple-600 font-bold">({rec.variantName})</span>
-                  </td>
-                  <td className="p-3 whitespace-nowrap">
-                    <span className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-[10px] font-black border border-purple-200">
-                      {rec.owner || '攤位公家'}
-                    </span>
-                  </td>
-                  <td className="p-3 text-center font-black text-slate-800 font-mono text-xs">
-                    {rec.qty}
-                  </td>
-                  <td className="p-3 text-right text-slate-500 font-mono">
-                    NT$ {rec.originalPrice * rec.qty}
-                  </td>
-                  <td className="p-3 text-right text-rose-500 font-bold font-mono">
-                    {rec.discount > 0 ? `-NT$ ${rec.discount}` : '-'}
-                  </td>
-                  <td className="p-3 text-right font-black text-purple-700 text-sm font-mono">
-                    NT$ {rec.realSubtotal}
-                  </td>
-                  <td className="p-3 whitespace-nowrap">
-                    <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-slate-100 text-slate-700">
-                      {rec.paymentMethod}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {[...(currentEventData.salesRecords || [])]
+                .sort((a, b) => (b.timestamp || b.orderId || '').localeCompare(a.timestamp || a.orderId || ''))
+                .map((rec, idx) => {
+                  const isPR = rec.paymentMethod === '公關贈送';
+                  const origTotal = Number(rec.originalPrice || rec.price || 0) * Number(rec.qty || 1);
+                  const realProfit = rec.realProfit !== undefined ? rec.realProfit : (Number(rec.realSubtotal || 0) - (Number(rec.cost || 0) * Number(rec.qty || 1)));
+
+                  return (
+                    <tr key={idx} className="hover:bg-slate-50 transition">
+                      <td className="p-3 text-slate-700 font-mono text-xs whitespace-nowrap">
+                        <Icons.Clock className="w-3.5 h-3.5 text-slate-400 inline mr-1" />
+                        <span>{rec.timestamp ? formatTaiwanTime(rec.timestamp, 'datetime') : rec.date}</span>
+                      </td>
+                      <td className="p-3 font-bold text-slate-900 whitespace-nowrap">
+                        {rec.productName} <span className="text-purple-600 font-bold">({rec.variantName})</span>
+                      </td>
+                      <td className="p-3 whitespace-nowrap">
+                        <span className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-[10px] font-black border border-purple-200">
+                          {rec.owner || '攤位公家'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center font-black text-slate-800 font-mono text-xs">
+                        {rec.qty}
+                      </td>
+                      <td className="p-3 text-right text-slate-500 font-mono">
+                        NT$ {origTotal}
+                      </td>
+                      <td className="p-3 text-right text-rose-500 font-bold font-mono">
+                        {rec.discount > 0 ? `-NT$ ${rec.discount}` : '-'}
+                      </td>
+                      <td className="p-3 text-right font-black font-mono">
+                        {isPR ? (
+                          <span className="text-amber-700 bg-amber-100 px-2 py-0.5 rounded text-[11px]">公關 $0</span>
+                        ) : (
+                          <span className="text-purple-700 text-sm">NT$ {rec.realSubtotal}</span>
+                        )}
+                      </td>
+                      <td className="p-3 text-right font-black font-mono">
+                        <span className={realProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                          {realProfit >= 0 ? `+NT$ ${realProfit}` : `-NT$ ${Math.abs(realProfit)}`}
+                        </span>
+                      </td>
+                      <td className="p-3 whitespace-nowrap">
+                        <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black ${
+                          isPR ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          {rec.paymentMethod}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>

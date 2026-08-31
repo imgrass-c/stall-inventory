@@ -22,19 +22,23 @@ export default function MonthTab({
   const handleExportPartnerSalesCsv = (partnerName, salesRecords, monthStr) => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
-    const headers = ['日期時間', '場次活動', '商品名稱', '商品規格', '銷售數量', '標價單價', '折讓金額', '實收分帳金額', '收款方式', '商品歸屬'];
-    const rows = (salesRecords || []).map(r => [
-      r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
-      r.eventName || '一般現場',
-      r.productName,
-      r.variantName,
-      r.qty,
-      r.originalPrice,
-      r.discount || 0,
-      r.realSubtotal,
-      r.paymentMethod,
-      partnerName
-    ]);
+    const headers = ['日期時間', '場次活動', '商品名稱', '商品規格', '銷售數量', '標價單價', '折讓金額', '實收分帳金額', '實質毛利', '收款方式', '商品歸屬'];
+    const rows = (salesRecords || []).map(r => {
+      const realProfit = r.realProfit !== undefined ? r.realProfit : (Number(r.realSubtotal || 0) - (Number(r.cost || 0) * Number(r.qty || 1)));
+      return [
+        r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
+        r.eventName || '一般現場',
+        r.productName,
+        r.variantName,
+        r.qty,
+        r.originalPrice,
+        r.discount || 0,
+        r.realSubtotal,
+        realProfit,
+        r.paymentMethod,
+        partnerName
+      ];
+    });
     exportToCsv(`感情失敗之友會_夥伴分帳明細_${monthStr}_${partnerName}_${dateStr}.csv`, headers, rows);
   };
 
@@ -89,23 +93,23 @@ export default function MonthTab({
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-card">
           <div className="text-[11px] text-slate-500 font-bold">當月累積實收</div>
-          <div className="text-xl font-black text-slate-900 mt-1">NT$ {totalRev.toLocaleString()}</div>
+          <div className="text-xl font-black text-slate-900 mt-1 font-mono">NT$ {totalRev.toLocaleString()}</div>
         </div>
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-card">
           <div className="text-[11px] text-slate-500 font-bold">當月商品總成本</div>
-          <div className="text-xl font-black text-amber-700 mt-1">NT$ {totalCost.toLocaleString()}</div>
+          <div className="text-xl font-black text-amber-700 mt-1 font-mono">NT$ {totalCost.toLocaleString()}</div>
         </div>
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-card">
           <div className="text-[11px] text-slate-500 font-bold">當月實質總毛利</div>
-          <div className="text-xl font-black text-emerald-600 mt-1">NT$ {totalProfit.toLocaleString()}</div>
+          <div className="text-xl font-black text-emerald-600 mt-1 font-mono">NT$ {totalProfit.toLocaleString()}</div>
         </div>
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-card">
           <div className="text-[11px] text-slate-500 font-bold">當月平均毛利率</div>
-          <div className="text-xl font-black text-purple-700 mt-1">{profitMargin}%</div>
+          <div className="text-xl font-black text-purple-700 mt-1 font-mono">{profitMargin}%</div>
         </div>
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-card col-span-2 sm:col-span-1">
           <div className="text-[11px] text-slate-500 font-bold">總銷量 / 總訂單</div>
-          <div className="text-xl font-black text-slate-900 mt-1">{totalItems} 件 <span className="text-xs text-slate-400 font-normal">({totalOrders}單)</span></div>
+          <div className="text-xl font-black text-slate-900 mt-1 font-mono">{totalItems} 件 <span className="text-xs text-slate-400 font-normal">({totalOrders}單)</span></div>
         </div>
       </div>
 
@@ -182,14 +186,14 @@ export default function MonthTab({
               })}
             </div>
 
-            {/* 展開該夥伴當月銷售清單 */}
+            {/* 🌟 展開該夥伴當月銷售清單 (倒序排列，最新在最前) */}
             {expandedPartner && currentMonthData?.ownerBreakdown?.[expandedPartner] && (
               <div className="bg-white rounded-2xl border-2 border-purple-300 p-4 space-y-3 shadow-md animate-in fade-in">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-2 border-b border-purple-100">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-purple-600 animate-pulse"></span>
                     <h4 className="text-xs font-black text-slate-900">
-                      【{expandedPartner}】在 {selectedMonth} 的銷售明細 (共 {(currentMonthData.ownerBreakdown[expandedPartner].salesRecords || []).length} 筆)
+                      【{expandedPartner}】在 {selectedMonth} 的銷售明細 (最新在最前，共 {(currentMonthData.ownerBreakdown[expandedPartner].salesRecords || []).length} 筆)
                     </h4>
                   </div>
                   <button
@@ -210,48 +214,66 @@ export default function MonthTab({
                         <th className="p-2.5 whitespace-nowrap">場次活動</th>
                         <th className="p-2.5 whitespace-nowrap">商品名稱與規格</th>
                         <th className="p-2.5 text-center whitespace-nowrap">數量</th>
-                        <th className="p-2.5 text-right whitespace-nowrap">標價</th>
+                        <th className="p-2.5 text-right whitespace-nowrap">原標價</th>
                         <th className="p-2.5 text-right whitespace-nowrap text-rose-500">折讓</th>
                         <th className="p-2.5 text-right whitespace-nowrap text-purple-700 font-black">實收分帳</th>
+                        <th className="p-2.5 text-right whitespace-nowrap text-emerald-600 font-black">實質毛利</th>
                         <th className="p-2.5 whitespace-nowrap">支付方式</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium">
-                      {(currentMonthData.ownerBreakdown[expandedPartner].salesRecords || []).map((rec, idx) => (
-                        <tr key={idx} className="hover:bg-purple-50/30 transition">
-                          <td className="p-2.5 text-slate-700 font-mono text-[11px] whitespace-nowrap">
-                            <Icons.Clock className="w-3 h-3 text-slate-400 inline mr-1" />
-                            <span>{rec.timestamp ? formatTaiwanTime(rec.timestamp, 'datetime') : rec.date}</span>
-                          </td>
-                          <td className="p-2.5 whitespace-nowrap">
-                            <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-black border border-blue-200">
-                              {rec.eventName || '一般現場'}
-                            </span>
-                          </td>
-                          <td className="p-2.5 font-bold text-slate-900 whitespace-nowrap">
-                            {rec.productName} <span className="text-purple-600 font-bold">({rec.variantName})</span>
-                          </td>
-                          <td className="p-2.5 text-center font-black text-slate-800 font-mono">
-                            {rec.qty}
-                          </td>
-                          <td className="p-2.5 text-right text-slate-500 font-mono">
-                            NT$ {rec.originalPrice * rec.qty}
-                          </td>
-                          <td className="p-2.5 text-right text-rose-500 font-bold font-mono">
-                            {rec.discount > 0 ? `-NT$ ${rec.discount}` : '-'}
-                          </td>
-                          <td className="p-2.5 text-right font-black text-purple-700 text-sm font-mono">
-                            NT$ {rec.realSubtotal}
-                          </td>
-                          <td className="p-2.5 whitespace-nowrap">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
-                              rec.paymentMethod === '公關贈送' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
-                            }`}>
-                              {rec.paymentMethod}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                      {[...(currentMonthData.ownerBreakdown[expandedPartner].salesRecords || [])]
+                        .sort((a, b) => (b.timestamp || b.orderId || '').localeCompare(a.timestamp || a.orderId || ''))
+                        .map((rec, idx) => {
+                          const isPR = rec.paymentMethod === '公關贈送';
+                          const origTotal = Number(rec.originalPrice || rec.price || 0) * Number(rec.qty || 1);
+                          const realProfit = rec.realProfit !== undefined ? rec.realProfit : (Number(rec.realSubtotal || 0) - (Number(rec.cost || 0) * Number(rec.qty || 1)));
+
+                          return (
+                            <tr key={idx} className="hover:bg-purple-50/30 transition">
+                              <td className="p-2.5 text-slate-700 font-mono text-[11px] whitespace-nowrap">
+                                <Icons.Clock className="w-3 h-3 text-slate-400 inline mr-1" />
+                                <span>{rec.timestamp ? formatTaiwanTime(rec.timestamp, 'datetime') : rec.date}</span>
+                              </td>
+                              <td className="p-2.5 whitespace-nowrap">
+                                <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-black border border-blue-200">
+                                  {rec.eventName || '一般現場'}
+                                </span>
+                              </td>
+                              <td className="p-2.5 font-bold text-slate-900 whitespace-nowrap">
+                                {rec.productName} <span className="text-purple-600 font-bold">({rec.variantName})</span>
+                              </td>
+                              <td className="p-2.5 text-center font-black text-slate-800 font-mono">
+                                {rec.qty}
+                              </td>
+                              <td className="p-2.5 text-right text-slate-500 font-mono">
+                                NT$ {origTotal}
+                              </td>
+                              <td className="p-2.5 text-right text-rose-500 font-bold font-mono">
+                                {rec.discount > 0 ? `-NT$ ${rec.discount}` : '-'}
+                              </td>
+                              <td className="p-2.5 text-right font-black font-mono">
+                                {isPR ? (
+                                  <span className="text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded text-[11px]">公關 $0</span>
+                                ) : (
+                                  <span className="text-purple-700 text-sm">NT$ {rec.realSubtotal}</span>
+                                )}
+                              </td>
+                              <td className="p-2.5 text-right font-black font-mono">
+                                <span className={realProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                                  {realProfit >= 0 ? `+NT$ ${realProfit}` : `-NT$ ${Math.abs(realProfit)}`}
+                                </span>
+                              </td>
+                              <td className="p-2.5 whitespace-nowrap">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                                  isPR ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
+                                }`}>
+                                  {rec.paymentMethod}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
                     </tbody>
                   </table>
                 </div>
