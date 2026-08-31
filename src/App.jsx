@@ -130,6 +130,7 @@ export default function App() {
         {currentTab === 'products' && (
           <ProductManageView
             onAddProduct={(p, s) => realtime.addProductWithSkus(p, s)}
+            onUpdateProduct={(p, s, d) => realtime.updateProductWithSkus(p, s, d)}
             inventory={inventory}
             products={products}
             onSyncSheets={() => realtime.syncToGoogleSheets('products')}

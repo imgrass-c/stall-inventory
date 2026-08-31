@@ -562,6 +562,63 @@ class RealtimeService {
     }
   }
 
+  async updateProductWithSkus(productData, skus, deletedSkuIds = []) {
+    const cleanProduct = sanitizeForFirestore(productData);
+    const cleanSkus = skus.map(s => sanitizeForFirestore(s));
+
+    if (this.isFirebaseReady && this.db) {
+      const batch = this.db.batch();
+      const prodRef = this.db.collection("products").doc(cleanProduct.product_id);
+      batch.set(prodRef, cleanProduct, { merge: true });
+
+      deletedSkuIds.forEach(skuId => {
+        const invRef = this.db.collection("inventory_master").doc(skuId);
+        batch.delete(invRef);
+      });
+
+      cleanSkus.forEach(sku => {
+        const invRef = this.db.collection("inventory_master").doc(sku.sku_id);
+        batch.set(invRef, {
+          ...sku,
+          total_qty: (Number(sku.home_qty) || 0) + (Number(sku.stall_qty) || 0),
+          updated_at: new Date().toISOString()
+        }, { merge: true });
+      });
+
+      await batch.commit();
+      return { success: true };
+    } else {
+      let products = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_PRODUCTS) || "[]");
+      let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_INVENTORY) || "[]");
+
+      products = products.map(p => p.product_id === cleanProduct.product_id ? { ...p, ...cleanProduct } : p);
+      if (!products.some(p => p.product_id === cleanProduct.product_id)) {
+        products.push(cleanProduct);
+      }
+
+      inventory = inventory.filter(i => !deletedSkuIds.includes(i.sku_id));
+      const skuMap = {};
+      cleanSkus.forEach(s => {
+        skuMap[s.sku_id] = {
+          ...s,
+          total_qty: (Number(s.home_qty) || 0) + (Number(s.stall_qty) || 0),
+          updated_at: new Date().toISOString()
+        };
+      });
+
+      inventory = inventory.map(i => skuMap[i.sku_id] ? skuMap[i.sku_id] : i);
+      cleanSkus.forEach(s => {
+        if (!inventory.some(i => i.sku_id === s.sku_id)) {
+          inventory.push(skuMap[s.sku_id]);
+        }
+      });
+
+      localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(products));
+      localStorage.setItem(STORAGE_KEYS.LOCAL_INVENTORY, JSON.stringify(inventory));
+      return { success: true };
+    }
+  }
+
   // =========================================================================
   // 收銀結帳 (徹底消毒防 undefined)
   // =========================================================================
