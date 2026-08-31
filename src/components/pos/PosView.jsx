@@ -387,12 +387,18 @@ export default function PosView({
       {/* ========================================================================= */}
       {/* 📦 桌面側邊 / 手機端滑出式結帳抽屜 (Sliding Bottom Sheet Drawer) */}
       {/* ========================================================================= */}
+      {isDrawerOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 transition-opacity"
+          onClick={() => setIsDrawerOpen(false)}
+        />
+      )}
       <aside className={`
-        fixed md:static inset-x-0 bottom-0 z-40 md:z-auto
+        fixed md:static inset-x-0 bottom-0 z-50 md:z-auto
         w-full md:w-96 bg-white border-t md:border-t-0 md:border-l border-slate-200
-        p-4 sm:p-5 flex flex-col justify-between shadow-2xl md:shadow-none
+        p-4 sm:p-5 pb-8 sm:pb-5 flex flex-col justify-between shadow-2xl md:shadow-none
         transition-transform duration-300 ease-out
-        ${isDrawerOpen ? 'translate-y-0 max-h-[85vh] rounded-t-3xl overflow-y-auto' : 'translate-y-full md:translate-y-0 hidden md:flex'}
+        ${isDrawerOpen ? 'translate-y-0 max-h-[90vh] rounded-t-3xl overflow-y-auto' : 'translate-y-full md:translate-y-0 hidden md:flex'}
       `}>
         
         {/* 抽屜頂部標題與關閉按鈕 */}
