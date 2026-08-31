@@ -174,8 +174,8 @@ export default function TodayTab({
                                 <span className="text-rose-600 font-bold ml-1 text-[11px]">({it.variantName})</span>
                                 <span className="text-slate-500 font-black font-mono ml-1.5">x{it.qty}</span>
                               </div>
-                              <span className="font-mono font-black text-purple-700 text-xs">
-                                NT$ {it.revenue}
+                              <span className={"font-mono font-black text-xs " + (it.paymentMethod === "公關贈送" ? "text-amber-600" : "text-purple-700")}>
+                                {it.paymentMethod === "公關贈送" ? "NT$ 0 (公關)" : "NT$ " + it.revenue}
                               </span>
                             </div>
 
@@ -187,8 +187,8 @@ export default function TodayTab({
                                 <span>•</span>
                                 <span>{it.paymentMethod}</span>
                               </span>
-                              <span className="font-mono text-emerald-600 font-black">
-                                毛利 +${it.profit}
+                              <span className={"font-mono font-black " + (it.profit >= 0 ? "text-emerald-600" : "text-rose-600")}>
+                                毛利 {it.profit >= 0 ? ("+$" + it.profit) : ("-$" + Math.abs(it.profit))}
                               </span>
                             </div>
                           </div>

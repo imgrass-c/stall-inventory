@@ -36,6 +36,7 @@ export default function RevenueView({
     let pm = { "現金": 0, "LinePay": 0, "街口": 0, "轉帳": 0, "公關贈送": 0 };
     let owners = {};
     let dailyMap = {};
+    let allSalesRecords = [];
 
     valid.forEach(s => {
       const pMethod = s.payment_method || '現金';
@@ -97,19 +98,25 @@ export default function RevenueView({
         owners[itemOwner].totalCost += itemTotalCost;
         owners[itemOwner].totalProfit += itemRealProfit;
         owners[itemOwner].totalQty += itemQty;
-        owners[itemOwner].salesRecords.push({
+        const itemRecord = {
           timestamp: s.timestamp,
           date: sDate,
           orderId: s.order_id,
           eventName: sEvent,
           productName: item.productName,
           variantName: item.variantName,
+          owner: itemOwner,
           qty: itemQty,
+          price: itemPrice,
           originalPrice: itemPrice,
+          cost: itemCost,
           discount: itemSubtotal - itemRealSubtotal,
           realSubtotal: itemRealSubtotal,
+          realProfit: itemRealProfit,
           paymentMethod: pMethod
-        });
+        };
+        owners[itemOwner].salesRecords.push(itemRecord);
+        allSalesRecords.push(itemRecord);
       });
     });
 
@@ -132,14 +139,7 @@ export default function RevenueView({
       paymentBreakdown: pm,
       ownerBreakdown: owners,
       dailyBreakdown,
-      salesRecords: valid.flatMap(s => (s.items || []).map(i => ({
-        ...i,
-        timestamp: s.timestamp,
-        date: s.date,
-        orderId: s.order_id,
-        eventName: s.eventName || s.channelName,
-        paymentMethod: s.payment_method
-      })))
+      salesRecords: allSalesRecords
     };
   };
 
