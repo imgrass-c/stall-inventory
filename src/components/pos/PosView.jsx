@@ -4,8 +4,10 @@ import { Icons } from '../common/Icons';
 export default function PosView({
   products = [],
   inventory = [],
+  onCheckout,
   onCheckoutSale,
   allEvents = [],
+  user,
   onNavigateToProducts
 }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -131,13 +133,14 @@ export default function PosView({
         discountAmount: effectiveDiscount,
         originalTotal: cartTotalOriginal,
         finalTotal: finalTotalAmount,
-        operator: '現場收銀員',
+        operator: user?.name || (user?.email ? user.email.split('@')[0] : '現場收銀員'),
         channelType: channelType,
         channelName: channelName,
         eventName: channelType === 'market' ? channelName : ''
       };
 
-      const res = await onCheckoutSale(payload);
+      const checkoutFn = onCheckoutSale || onCheckout;
+      const res = await checkoutFn(payload);
       if (res && res.success) {
         setLastOrderSuccess({
           orderId: res.orderId,

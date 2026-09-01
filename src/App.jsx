@@ -16,6 +16,7 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState('pos');
   const [products, setProducts] = useState([]);
   const [inventory, setInventory] = useState([]);
+  const [events, setEvents] = useState([]);
   const [isFirebaseLive, setIsFirebaseLive] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
@@ -44,6 +45,13 @@ export default function App() {
       setPendingCount(pending.length);
     });
     return () => unsubUsers();
+  }, [currentUser]);
+
+  useEffect(() => {
+    const unsubEvents = realtime.subscribeEvents((eventsList) => {
+      setEvents(eventsList || []);
+    });
+    return () => unsubEvents();
   }, [currentUser]);
 
   const handleLogout = () => {
@@ -89,6 +97,8 @@ export default function App() {
             products={products}
             inventory={inventory}
             onCheckout={(order) => realtime.checkoutSale(order)}
+            onCheckoutSale={(order) => realtime.checkoutSale(order)}
+            allEvents={events}
             user={currentUser}
             onNavigateToProducts={() => setCurrentTab('products')}
           />
