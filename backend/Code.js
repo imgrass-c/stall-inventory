@@ -1,7 +1,14 @@
 /**
  * ====================================================================
- * 感情失敗之友會 POS - Google Apps Script 後端 API
- * (支援日結存檔、當月營收彙整、全量備份、商品與庫存智慧管理)
+ * 感情失敗之友會 POS - Google Apps Script 後端 API (v2.5.0)
+ * 支援功能：
+ * 1. Daily_Reports (單日日結戰報自動存檔)
+ * 2. Monthly_Summary (當月營收與毛利月報表自動彙整)
+ * 3. Sales_Orders (銷售交易明細總庫 - 含成本、毛利與折讓)
+ * 4. Inventory_Master (全庫存主檔 - 雙庫存與總貨值)
+ * 5. Events_Master (市集活動與追加支出損益主檔)
+ * 6. Products (商品母檔清單)
+ * 7. Users_Config (成員權限與審核名冊)
  * ====================================================================
  */
 
@@ -62,7 +69,7 @@ function handleRequest(e, method) {
   try {
     switch (action) {
       case "ping":
-        response = { success: true, message: "Stall POS API is active!", timestamp: new Date() };
+        response = { success: true, message: "感情失敗之友會 POS API 連線正常！", timestamp: new Date() };
         break;
       case "saveDailyReport":
         response = handleSaveDailyReport(params.data || params);
@@ -78,26 +85,11 @@ function handleRequest(e, method) {
       case "getInventory":
         response = handleGetInventory(params);
         break;
-      case "addProductWithVariants":
-        response = handleAddProductWithVariants(params);
-        break;
-      case "transferStock":
-        response = handleTransferStock(params);
-        break;
-      case "checkoutSale":
-        response = handleCheckoutSale(params);
-        break;
-      case "voidSale":
-        response = handleVoidSale(params);
-        break;
       case "getTodaySales":
         response = handleGetTodaySales(params);
         break;
       case "getUsers":
         response = handleGetUsers(params);
-        break;
-      case "updateUserRole":
-        response = handleUpdateUserRole(params);
         break;
       default:
         response = { success: false, error: "未知的 Action: " + action };
@@ -136,7 +128,7 @@ function handleSaveDailyReport(data) {
     sheet.appendRow([
       "結算日期", "出攤活動/通路", "售出總件數", "總訂單數", "實收營業額", "底價總成本", "實質總毛利", "毛利率", 
       "現金實收", "LinePay", "街口", "轉帳", "公關贈送", 
-      "主理人A分帳", "主理人B分帳", "攤位公家分帳", "結算時間", "結算主理人"
+      "各主理人分帳彙總", "結算時間", "結算主理人"
     ]);
   }
 
@@ -144,10 +136,9 @@ function handleSaveDailyReport(data) {
   const pb = d.paymentBreakdown || {};
   const ob = d.ownerBreakdown || {};
 
-  const partnerEntries = Object.entries(ob);
-  const p1 = partnerEntries[0] ? `${partnerEntries[0][0]}: $${partnerEntries[0][1].totalRevenue} (毛利$${partnerEntries[0][1].totalProfit})` : '-';
-  const p2 = partnerEntries[1] ? `${partnerEntries[1][0]}: $${partnerEntries[1][1].totalRevenue} (毛利$${partnerEntries[1][1].totalProfit})` : '-';
-  const p3 = partnerEntries[2] ? `${partnerEntries[2][0]}: $${partnerEntries[2][1].totalRevenue} (毛利$${partnerEntries[2][1].totalProfit})` : '-';
+  const partnerSummary = Object.entries(ob).map(([name, data]) => {
+    return `${name}: 實收$${data.totalRevenue} (毛利$${data.totalProfit}, ${data.totalQty}件)`;
+  }).join(" | ");
 
   sheet.appendRow([
     d.date || Utilities.formatDate(new Date(), "GMT+8", "yyyy-MM-dd"),
@@ -163,14 +154,12 @@ function handleSaveDailyReport(data) {
     Number(pb["街口"]) || 0,
     Number(pb["轉帳"]) || 0,
     Number(pb["公關贈送"]) || 0,
-    p1,
-    p2,
-    p3,
+    partnerSummary || "-",
     d.closedAt || new Date(),
     d.operator || "主理人"
   ]);
 
-  // 同步更新當月營收彙整工作表
+  // 自動更新當月營收彙整工作表
   updateMonthlySummarySheet(ss);
 
   return { success: true, message: "日結戰報已成功記錄至 Google 試算表！" };
@@ -249,39 +238,50 @@ function updateMonthlySummarySheet(ss) {
 }
 
 // -------------------------------------------------------------
-// 3. 全系統資料備份同步至 Google 試算表 (商品 + 庫存 + 銷售 + 成員)
+// 3. 全系統資料備份同步至 Google 試算表 (商品 + 庫存 + 銷售 + 活動 + 成員)
 // -------------------------------------------------------------
 function handleFullSyncBackup(params) {
   const ss = getSpreadsheetInstance();
   const targetType = params.syncType || params.targetType || "all";
 
-  // 1. 同步 Inventory_Master
+  // 1. 同步 Inventory_Master (含商品成本與總貨值)
   if ((targetType === "all" || targetType === "inventory") && params.inventory && Array.isArray(params.inventory)) {
     let invSheet = ss.getSheetByName("Inventory_Master");
     if (!invSheet) invSheet = ss.insertSheet("Inventory_Master");
     invSheet.clearContents();
-    invSheet.appendRow(["sku_id", "product_id", "product_name", "category", "owner", "variant_name", "price", "cost", "home_qty", "stall_qty", "total_qty", "updated_at"]);
-    
-    const rows = params.inventory.map(i => [
-      i.sku_id,
-      i.product_id,
-      i.product_name,
-      i.category || "衣服",
-      i.owner || "攤位公家",
-      i.variant_name || "Free",
-      Number(i.price) || 0,
-      Number(i.cost) || 0,
-      Number(i.home_qty) || 0,
-      Number(i.stall_qty) || 0,
-      Number(i.total_qty) || ((Number(i.home_qty)||0) + (Number(i.stall_qty)||0)),
-      i.updated_at || new Date()
+    invSheet.appendRow([
+      "sku_id", "product_id", "product_name", "category", "owner", "variant_name", 
+      "price", "cost", "home_qty", "stall_qty", "total_qty", "total_cost_value", "updated_at"
     ]);
+    
+    const rows = params.inventory.map(i => {
+      const home = Number(i.home_qty) || 0;
+      const stall = Number(i.stall_qty) || 0;
+      const total = Number(i.total_qty) || (home + stall);
+      const cost = Number(i.cost) || 0;
+      const price = Number(i.price) || 0;
+      return [
+        i.sku_id,
+        i.product_id,
+        i.product_name,
+        i.category || "衣服",
+        i.owner || "攤位公家",
+        i.variant_name || "Free",
+        price,
+        cost,
+        home,
+        stall,
+        total,
+        cost * total,
+        i.updated_at || new Date()
+      ];
+    });
     if (rows.length > 0) {
       invSheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
     }
   }
 
-  // 2. 同步 Products
+  // 2. 同步 Products (商品母檔)
   if ((targetType === "all" || targetType === "products") && params.products && Array.isArray(params.products)) {
     let prodSheet = ss.getSheetByName("Products");
     if (!prodSheet) prodSheet = ss.insertSheet("Products");
@@ -300,15 +300,32 @@ function handleFullSyncBackup(params) {
     }
   }
 
-  // 3. 同步 Sales_Orders
+  // 3. 同步 Sales_Orders (銷售訂單明細 - 含成本、毛利與折讓)
   if ((targetType === "all" || targetType === "sales") && params.sales && Array.isArray(params.sales)) {
     let salesSheet = ss.getSheetByName("Sales_Orders");
     if (!salesSheet) salesSheet = ss.insertSheet("Sales_Orders");
     salesSheet.clearContents();
-    salesSheet.appendRow(["order_id", "date", "time", "channel_name", "items_summary", "total_amount", "discount_amount", "final_amount", "payment_method", "operator", "status", "timestamp"]);
+    salesSheet.appendRow([
+      "order_id", "date", "time", "channel_name", "items_summary", 
+      "total_amount", "discount_amount", "final_amount", "cost_amount", "profit_amount", 
+      "payment_method", "operator", "status", "timestamp"
+    ]);
     
     const rows = params.sales.map(s => {
-      const itemsSummary = (s.items || []).map(i => `${i.productName}(${i.variantName})x${i.qty}[${i.owner || '公家'}]`).join(", ");
+      const isPR = s.payment_method === '公關贈送';
+      const origTotal = Number(s.total_amount) || 0;
+      const finalTotal = isPR ? 0 : (s.final_amount !== undefined ? Number(s.final_amount) : origTotal);
+      const discount = Number(s.discount_amount) || 0;
+
+      let orderCost = 0;
+      const itemsSummary = (s.items || []).map(i => {
+        const itemCost = Number(i.cost) || 0;
+        const itemQty = Number(i.qty) || 1;
+        orderCost += itemCost * itemQty;
+        return `${i.productName}(${i.variantName})x${itemQty}[${i.owner || '公家'}]`;
+      }).join(", ");
+
+      const orderProfit = finalTotal - orderCost;
       const ts = s.timestamp ? new Date(s.timestamp) : new Date();
       const dateStr = s.date || Utilities.formatDate(ts, "GMT+8", "yyyy-MM-dd");
       const timeStr = Utilities.formatDate(ts, "GMT+8", "HH:mm:ss");
@@ -319,9 +336,11 @@ function handleFullSyncBackup(params) {
         timeStr,
         s.channelName || s.eventName || "市集現場",
         itemsSummary,
-        Number(s.total_amount) || 0,
-        Number(s.discount_amount) || 0,
-        Number(s.final_amount) || 0,
+        origTotal,
+        discount,
+        finalTotal,
+        orderCost,
+        orderProfit,
         s.payment_method || "現金",
         s.operator || "現場收銀員",
         s.status || "已完成",
@@ -333,7 +352,38 @@ function handleFullSyncBackup(params) {
     }
   }
 
-  // 4. 同步 Users_Config
+  // 4. 同步 Events_Master (市集活動與支出)
+  if ((targetType === "all" || targetType === "events") && params.events && Array.isArray(params.events)) {
+    let eventSheet = ss.getSheetByName("Events_Master");
+    if (!eventSheet) eventSheet = ss.insertSheet("Events_Master");
+    eventSheet.clearContents();
+    eventSheet.appendRow([
+      "event_id", "name", "start_date", "end_date", "booth_cost", "expenses_summary", "total_expenses", "status", "created_at"
+    ]);
+    const rows = params.events.map(e => {
+      const expenses = e.expenses || [];
+      const expSum = expenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
+      const expSummary = expenses.map(exp => `${exp.title}:$${exp.amount}`).join(", ");
+      const totalExp = (Number(e.booth_cost) || 0) + expSum;
+
+      return [
+        e.event_id || "-",
+        e.name || "市集活動",
+        e.start_date || "",
+        e.end_date || "",
+        Number(e.booth_cost) || 0,
+        expSummary || "-",
+        totalExp,
+        e.status || "進行中",
+        e.created_at || new Date()
+      ];
+    });
+    if (rows.length > 0) {
+      eventSheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+    }
+  }
+
+  // 5. 同步 Users_Config (成員與權限)
   if ((targetType === "all" || targetType === "users") && params.users && Array.isArray(params.users)) {
     let userSheet = ss.getSheetByName("Users_Config");
     if (!userSheet) userSheet = ss.insertSheet("Users_Config");
@@ -362,7 +412,7 @@ function handleFullSyncBackup(params) {
 }
 
 // -------------------------------------------------------------
-// 4. 其他輔助函式
+// 4. 其他輔助函式 (登入審核與取得庫存)
 // -------------------------------------------------------------
 function handleVerifyUser(params) {
   const email = (params.email || "").trim().toLowerCase();
@@ -405,10 +455,5 @@ function handleGetInventory(params) {
   };
 }
 
-function handleAddProductWithVariants(params) { return { success: true }; }
-function handleTransferStock(params) { return { success: true }; }
-function handleCheckoutSale(params) { return { success: true }; }
-function handleVoidSale(params) { return { success: true }; }
 function handleGetTodaySales(params) { return { success: true }; }
 function handleGetUsers(params) { return { success: true, users: sheetToObjects(getSheet("Users_Config")) }; }
-function handleUpdateUserRole(params) { return { success: true }; }
