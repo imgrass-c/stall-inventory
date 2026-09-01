@@ -167,10 +167,10 @@ export default function PosView({
       {/* ========================================================================= */}
       {/* 📱 左側 / 全螢幕：商品選購陳列區 */}
       {/* ========================================================================= */}
-      <div className="flex-1 flex flex-col min-w-0 bg-surface-50 p-3 sm:p-5 overflow-y-auto pb-32 md:pb-6">
+      <div className="flex-1 flex flex-col min-w-0 bg-surface-50 p-3 sm:p-4 md:p-5 overflow-y-auto pb-32 md:pb-6">
         
-        {/* 🌟 頂部控制列 (固定置頂，大按鈕與清晰文字設計) */}
-        <div className="space-y-3 mb-3 flex-shrink-0 bg-surface-50">
+        {/* 🌟 頂部控制列 (響應式設計：手機大按鈕好按，電腦端精緻適中不佔位) */}
+        <div className="space-y-2.5 sm:space-y-3 mb-3.5 flex-shrink-0 bg-surface-50">
           
           {/* 搜尋欄 */}
           <div className="relative">
@@ -180,7 +180,7 @@ export default function PosView({
               placeholder="快速搜尋商品名稱、款式、尺寸 (如: 貓貓白色, L)..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-white border-2 border-slate-200 rounded-2xl pl-12 pr-10 py-3 text-base font-bold text-slate-900 focus:outline-none focus:border-rose-400 shadow-sm"
+              className="w-full bg-white border-2 border-slate-200 rounded-2xl pl-12 pr-10 py-2.5 sm:py-3 text-sm sm:text-base font-bold text-slate-900 focus:outline-none focus:border-rose-400 shadow-sm"
             />
             {searchTerm && (
               <button onClick={() => setSearchTerm('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
@@ -189,13 +189,13 @@ export default function PosView({
             )}
           </div>
 
-          {/* 銷售通路快速切換列 (加大字體與觸控按鈕) */}
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="flex bg-white p-1.5 rounded-2xl border-2 border-slate-200 shadow-sm">
+          {/* 銷售通路快速切換列 */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex bg-white p-1 rounded-2xl border-2 border-slate-200 shadow-sm">
               <button
                 type="button"
                 onClick={() => { setChannelType('market'); setChannelName(availableEvents[0]?.name || '一般現場'); }}
-                className={`min-h-[44px] px-4 py-2 rounded-xl transition flex items-center gap-1.5 text-sm sm:text-base font-black ${
+                className={`min-h-[40px] sm:min-h-[44px] px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl transition flex items-center gap-1.5 text-xs sm:text-sm md:text-base font-black ${
                   channelType === 'market' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -205,7 +205,7 @@ export default function PosView({
               <button
                 type="button"
                 onClick={() => { setChannelType('online'); setChannelName('7-11 賣貨便'); }}
-                className={`min-h-[44px] px-4 py-2 rounded-xl transition flex items-center gap-1.5 text-sm sm:text-base font-black ${
+                className={`min-h-[40px] sm:min-h-[44px] px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl transition flex items-center gap-1.5 text-xs sm:text-sm md:text-base font-black ${
                   channelType === 'online' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -214,12 +214,12 @@ export default function PosView({
               </button>
             </div>
 
-            {/* 通路細項選擇器 (加大字體與觸控高度) */}
+            {/* 通路細項選擇器 */}
             {channelType === 'market' ? (
               <select
                 value={channelName}
                 onChange={e => setChannelName(e.target.value)}
-                className="min-h-[48px] bg-white border-2 border-rose-300 rounded-2xl px-4 py-2 text-sm sm:text-base font-black text-rose-700 shadow-sm focus:outline-none focus:border-rose-500"
+                className="min-h-[40px] sm:min-h-[44px] bg-white border-2 border-rose-300 rounded-2xl px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm md:text-base font-black text-rose-700 shadow-sm focus:outline-none focus:border-rose-500"
               >
                 {availableEvents.length === 0 ? (
                   <option value="一般現場">一般現場 (未指定場次)</option>
@@ -232,7 +232,7 @@ export default function PosView({
               <select
                 value={channelName}
                 onChange={e => setChannelName(e.target.value)}
-                className="min-h-[48px] bg-white border-2 border-purple-300 rounded-2xl px-4 py-2 text-sm sm:text-base font-black text-purple-700 shadow-sm focus:outline-none focus:border-purple-500"
+                className="min-h-[40px] sm:min-h-[44px] bg-white border-2 border-purple-300 rounded-2xl px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm md:text-base font-black text-purple-700 shadow-sm focus:outline-none focus:border-purple-500"
               >
                 <option value="7-11 賣貨便">7-11 賣貨便</option>
                 <option value="官方網站">官方網站</option>
@@ -243,14 +243,14 @@ export default function PosView({
             )}
           </div>
 
-          {/* 🌟 分類標籤滑動列 (加大按鈕尺寸與字體) */}
-          <div className="flex items-center gap-2.5 overflow-x-auto pt-1 pb-2 no-scrollbar">
+          {/* 🌟 分類標籤滑動列 */}
+          <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-1.5 no-scrollbar">
             {categories.map(cat => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setCategoryFilter(cat)}
-                className={`min-h-[46px] px-5 py-2.5 rounded-2xl text-sm sm:text-base font-black whitespace-nowrap transition shadow-sm flex-shrink-0 ${
+                className={`min-h-[40px] sm:min-h-[44px] px-4 sm:px-5 py-1.5 sm:py-2 rounded-2xl text-xs sm:text-sm md:text-base font-black whitespace-nowrap transition shadow-sm flex-shrink-0 ${
                   categoryFilter === cat
                     ? 'bg-rose-500 text-white shadow-rose-200 ring-2 ring-rose-400'
                     : 'bg-white text-slate-800 hover:bg-slate-100 border-2 border-slate-200'
@@ -263,7 +263,7 @@ export default function PosView({
 
         </div>
 
-        {/* 商品與服飾規格卡片網格 */}
+        {/* 🌟 商品網格 (採用自動最小寬度保證 minmax(260px, 1fr)，電腦版絕不再過度壓縮卡片) */}
         {filteredProducts.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
             <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
@@ -281,7 +281,7 @@ export default function PosView({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-3.5 sm:gap-4">
             {filteredProducts.map(product => {
               const skus = productSkusMap[product.product_id] || [];
               const totalStall = skus.reduce((sum, s) => sum + (s.stall_qty || 0), 0);
@@ -293,13 +293,13 @@ export default function PosView({
                   className="bg-white border-2 border-slate-200 rounded-3xl overflow-hidden shadow-card flex flex-col justify-between"
                 >
                   {/* 商品縮圖與庫存總覽 */}
-                  <div className="relative aspect-video sm:aspect-square bg-slate-100 overflow-hidden flex items-center justify-center">
+                  <div className="relative aspect-video sm:aspect-[4/3] bg-slate-100 overflow-hidden flex items-center justify-center">
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                     ) : (
                       <Icons.Image className="w-12 h-12 text-slate-300" />
                     )}
-                    <span className="absolute top-2.5 right-2.5 bg-slate-900/90 backdrop-blur-sm text-white text-xs sm:text-sm font-black px-3 py-1 rounded-full shadow-md">
+                    <span className="absolute top-2.5 right-2.5 bg-slate-900/90 backdrop-blur-sm text-white text-xs font-black px-2.5 py-1 rounded-full shadow-md whitespace-nowrap">
                       現場: {totalStall} • 倉庫: {totalHome}
                     </span>
                   </div>
@@ -307,14 +307,16 @@ export default function PosView({
                   {/* 商品名稱與規格尺寸按鈕 */}
                   <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2.5">
                     <div>
-                      <span className="bg-rose-50 text-rose-600 px-2.5 py-0.5 rounded-md text-xs font-black border border-rose-100 uppercase">
+                      <span className="bg-rose-50 text-rose-600 px-2 py-0.5 rounded-md text-[11px] font-black border border-rose-100 uppercase">
                         {product.category || '衣服'}
                       </span>
-                      <h4 className="font-black text-slate-900 text-base sm:text-lg line-clamp-1 mt-1">{product.name}</h4>
+                      <h4 className="font-black text-slate-900 text-base sm:text-lg line-clamp-1 mt-1" title={product.name}>
+                        {product.name}
+                      </h4>
                     </div>
 
-                    {/* 🌟 尺寸 / 規格 SKU 大按鈕 (超大字體與舒適觸控高度) */}
-                    <div className="space-y-2">
+                    {/* 🌟 尺寸 / 規格 SKU 按鈕 (強制單行水平對齊 whitespace-nowrap，絕不垂直折行擠壓) */}
+                    <div className="space-y-1.5 sm:space-y-2">
                       {skus.map(sku => {
                         const inCart = cart.find(c => c.skuId === sku.sku_id);
                         const stallStock = Number(sku.stall_qty) || 0;
@@ -327,7 +329,7 @@ export default function PosView({
                             key={sku.sku_id}
                             disabled={isOutOfStock}
                             onClick={() => addToCart(product, sku)}
-                            className={`w-full min-h-[52px] sm:min-h-[56px] px-4 py-2.5 rounded-2xl text-left transition border-2 flex items-center justify-between active:scale-98 ${
+                            className={`w-full min-h-[48px] sm:min-h-[52px] px-3.5 py-2 rounded-2xl text-left transition border-2 flex items-center justify-between gap-1.5 active:scale-98 ${
                               isOutOfStock
                                 ? 'bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed opacity-60'
                                 : inCart
@@ -335,18 +337,21 @@ export default function PosView({
                                 : 'bg-surface-50 hover:bg-slate-100 text-slate-900 border-slate-200'
                             }`}
                           >
-                            <div className="overflow-hidden flex items-baseline gap-2">
-                              <span className="font-black text-base sm:text-lg text-slate-900">{sku.variant_name}</span>
-                              {/* 🌟 清楚顯示現場與倉庫件數 */}
-                              <span className="text-xs sm:text-sm text-slate-600 font-bold">
+                            {/* 左側：尺寸字母 + 現倉庫存標示 (不折行) */}
+                            <div className="flex items-baseline gap-1.5 min-w-0 overflow-hidden whitespace-nowrap">
+                              <span className="font-black text-base sm:text-lg text-slate-900 flex-shrink-0">
+                                {sku.variant_name}
+                              </span>
+                              <span className="text-xs sm:text-sm text-slate-600 font-bold truncate">
                                 (現 <span className={`font-black ${stallStock > 0 ? 'text-rose-600 font-mono' : 'text-slate-400'}`}>{stallStock}</span> / 倉 <span className="font-black text-slate-800 font-mono">{homeStock}</span>)
                               </span>
                             </div>
 
-                            <div className="flex items-center gap-2 flex-shrink-0 font-mono font-black text-base sm:text-lg text-rose-600">
+                            {/* 右側：售價 + 購物車件數徽章 (不折行) */}
+                            <div className="flex items-center gap-1.5 flex-shrink-0 font-mono font-black text-base sm:text-lg text-rose-600 whitespace-nowrap">
                               <span>${sku.price}</span>
                               {inCart && (
-                                <span className="bg-rose-600 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-sm">
+                                <span className="bg-rose-600 text-white text-xs w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold shadow-sm">
                                   {inCart.qty}
                                 </span>
                               )}
@@ -371,21 +376,21 @@ export default function PosView({
           <button
             type="button"
             onClick={() => setIsDrawerOpen(true)}
-            className="w-full bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-slate-700 active:scale-98"
+            className="w-full bg-slate-900 text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-slate-700 active:scale-98"
           >
             <div className="flex items-center gap-2">
-              <span className="bg-rose-500 text-white text-sm font-black px-3 py-1 rounded-full">
+              <span className="bg-rose-500 text-white text-xs sm:text-sm font-black px-2.5 py-1 rounded-full">
                 {cartTotalItems} 件
               </span>
-              <span className="text-xs sm:text-sm font-bold text-slate-300">
-                {channelType === 'online' ? `網路販售 (${channelName})` : `現場出攤 (${channelName})`}
+              <span className="text-xs sm:text-sm font-bold text-slate-300 truncate max-w-[150px]">
+                {channelType === 'online' ? `網路 (${channelName})` : `現場 (${channelName})`}
               </span>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="font-black text-lg sm:text-xl font-mono text-rose-400">
+            <div className="flex items-center gap-2.5">
+              <span className="font-black text-base sm:text-xl font-mono text-rose-400">
                 NT$ {finalTotalAmount.toLocaleString()}
               </span>
-              <span className="text-xs sm:text-sm bg-rose-500 text-white font-black px-3.5 py-1.5 rounded-xl">
+              <span className="text-xs sm:text-sm bg-rose-500 text-white font-black px-3 py-1.5 rounded-xl whitespace-nowrap">
                 結帳明細
               </span>
             </div>
@@ -404,32 +409,32 @@ export default function PosView({
       )}
       <aside className={`
         fixed md:static inset-x-0 bottom-0 z-50 md:z-auto
-        w-full md:w-96 bg-white border-t md:border-t-0 md:border-l border-slate-200
-        p-4 sm:p-5 pb-8 sm:pb-5 flex flex-col justify-between shadow-2xl md:shadow-none
+        w-full md:w-80 lg:w-96 bg-white border-t md:border-t-0 md:border-l border-slate-200
+        p-4 sm:p-5 pb-8 sm:pb-5 flex flex-col justify-between shadow-2xl md:shadow-none flex-shrink-0
         transition-transform duration-300 ease-out
         ${isDrawerOpen ? 'translate-y-0 max-h-[90vh] rounded-t-3xl overflow-y-auto' : 'translate-y-full md:translate-y-0 hidden md:flex'}
       `}>
         
         {/* 抽屜頂部標題與關閉按鈕 */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black">
-              <Icons.Pos className="w-5 h-5 text-rose-600" />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black flex-shrink-0">
+              <Icons.Pos className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600" />
             </div>
             <div>
-              <h3 className="font-black text-slate-900 text-base sm:text-lg">收銀結帳明細 ({cartTotalItems} 件)</h3>
+              <h3 className="font-black text-slate-900 text-sm sm:text-base">收銀結帳明細 ({cartTotalItems} 件)</h3>
               <p className="text-xs text-slate-400 font-bold">通路: {channelName}</p>
             </div>
           </div>
           
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {cart.length > 0 && (
-              <button onClick={() => setCart([])} className="text-xs sm:text-sm text-slate-400 hover:text-rose-600 font-bold px-2 py-1">
+              <button onClick={() => setCart([])} className="text-xs text-slate-400 hover:text-rose-600 font-bold px-2 py-1">
                 清空
               </button>
             )}
             <button onClick={() => setIsDrawerOpen(false)} className="md:hidden text-slate-400 hover:text-slate-700 p-1.5">
-              <Icons.Close className="w-6 h-6" />
+              <Icons.Close className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
         </div>
@@ -437,40 +442,40 @@ export default function PosView({
         {/* 購物車品項列表 */}
         <div className="flex-1 overflow-y-auto divide-y divide-slate-100 my-2 max-h-60 md:max-h-none">
           {cart.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 text-sm font-bold space-y-1">
+            <div className="py-12 text-center text-slate-400 text-xs sm:text-sm font-bold space-y-1">
               <p>購物車空空如也</p>
               <p className="text-xs text-slate-300">請點選左側服飾尺寸加入結帳</p>
             </div>
           ) : (
             cart.map(item => (
-              <div key={item.skuId} className="py-3 flex items-center justify-between text-sm">
+              <div key={item.skuId} className="py-2.5 sm:py-3 flex items-center justify-between text-xs sm:text-sm">
                 <div className="overflow-hidden pr-2">
-                  <div className="font-black text-slate-900 text-sm sm:text-base truncate">{item.productName}</div>
-                  <div className="text-xs text-slate-500 font-bold flex items-center gap-1.5 mt-0.5">
-                    <span className="bg-rose-50 text-rose-600 px-2 py-0.5 rounded-md font-black">{item.variantName}</span>
+                  <div className="font-black text-slate-900 text-xs sm:text-sm truncate">{item.productName}</div>
+                  <div className="text-[11px] sm:text-xs text-slate-500 font-bold flex items-center gap-1 mt-0.5">
+                    <span className="bg-rose-50 text-rose-600 px-1.5 py-0.2 rounded font-black">{item.variantName}</span>
                     <span>${item.price}</span>
                     <span className="text-purple-600 font-bold">[{item.owner}]</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                   <button
                     type="button"
                     onClick={() => updateCartQty(item.skuId, -1)}
-                    className="w-8 h-8 rounded-xl bg-surface-50 border border-slate-200 flex items-center justify-center text-slate-700 font-black hover:bg-slate-100 text-base"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-surface-50 border border-slate-200 flex items-center justify-center text-slate-700 font-black hover:bg-slate-100 text-sm sm:text-base"
                   >
                     -
                   </button>
-                  <span className="font-black font-mono text-base w-5 text-center">{item.qty}</span>
+                  <span className="font-black font-mono text-sm sm:text-base w-4 sm:w-5 text-center">{item.qty}</span>
                   <button
                     type="button"
                     onClick={() => updateCartQty(item.skuId, 1)}
                     disabled={item.qty >= item.maxQty}
-                    className="w-8 h-8 rounded-xl bg-surface-50 border border-slate-200 flex items-center justify-center text-slate-700 font-black hover:bg-slate-100 disabled:opacity-30 text-base"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-surface-50 border border-slate-200 flex items-center justify-center text-slate-700 font-black hover:bg-slate-100 disabled:opacity-30 text-sm sm:text-base"
                   >
                     +
                   </button>
-                  <span className="font-black font-mono text-base text-slate-900 w-16 text-right">
+                  <span className="font-black font-mono text-sm sm:text-base text-slate-900 w-14 sm:w-16 text-right">
                     ${item.price * item.qty}
                   </span>
                 </div>
@@ -479,8 +484,8 @@ export default function PosView({
           )}
         </div>
 
-        {/* 折讓與付款方式控制 (加大按鈕高度與字體) */}
-        <div className="space-y-3.5 pt-3 border-t border-slate-100">
+        {/* 折讓與付款方式控制 */}
+        <div className="space-y-3 pt-3 border-t border-slate-100">
           
           {/* 折扣選擇 */}
           <div>
@@ -491,7 +496,7 @@ export default function PosView({
                   key={disc}
                   type="button"
                   onClick={() => { setDiscountAmount(disc); setCustomDiscountInput(''); }}
-                  className={`min-h-[44px] rounded-xl font-black transition ${
+                  className={`min-h-[40px] sm:min-h-[44px] rounded-xl font-black transition ${
                     discountAmount === disc && customDiscountInput === ''
                       ? 'bg-rose-500 text-white shadow-sm'
                       : 'bg-surface-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
@@ -506,13 +511,13 @@ export default function PosView({
           {/* 收款方式 */}
           <div>
             <span className="text-xs font-black text-slate-600 block mb-1">收款方式：</span>
-            <div className="grid grid-cols-3 gap-2 text-xs sm:text-sm font-black">
+            <div className="grid grid-cols-3 gap-1.5 text-xs sm:text-sm font-black">
               {['現金', 'LinePay', '街口', '轉帳', '公關贈送'].map(m => (
                 <button
                   key={m}
                   type="button"
                   onClick={() => setPaymentMethod(m)}
-                  className={`min-h-[46px] rounded-xl transition flex items-center justify-center border-2 ${
+                  className={`min-h-[42px] sm:min-h-[46px] rounded-xl transition flex items-center justify-center border-2 ${
                     paymentMethod === m
                       ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
                       : 'bg-surface-50 text-slate-700 hover:bg-slate-100 border-slate-200'
@@ -525,7 +530,7 @@ export default function PosView({
           </div>
 
           {/* 金額總計與確認結帳 */}
-          <div className="bg-surface-50 p-3.5 rounded-2xl border-2 border-slate-200 space-y-1.5">
+          <div className="bg-surface-50 p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 space-y-1">
             <div className="flex justify-between text-xs sm:text-sm text-slate-500 font-bold">
               <span>原價: ${cartTotalOriginal}</span>
               {effectiveDiscount > 0 && <span className="text-rose-600 font-black">折讓: -${effectiveDiscount}</span>}
@@ -542,7 +547,7 @@ export default function PosView({
             type="button"
             onClick={handleCheckoutSubmit}
             disabled={cart.length === 0 || isSubmitting}
-            className="w-full min-h-[56px] bg-rose-500 hover:bg-rose-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-black rounded-2xl text-base sm:text-lg transition shadow-md flex items-center justify-center gap-2 active:scale-98"
+            className="w-full min-h-[50px] sm:min-h-[56px] bg-rose-500 hover:bg-rose-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-black rounded-2xl text-base sm:text-lg transition shadow-md flex items-center justify-center gap-2 active:scale-98"
           >
             <Icons.Check className="w-5 h-5 text-white" />
             <span>{isSubmitting ? '結帳處理中...' : `確認送出結帳 (NT$ ${finalTotalAmount})`}</span>
