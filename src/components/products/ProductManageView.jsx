@@ -256,15 +256,71 @@ export default function ProductManageView({
   const handleExportCsv = () => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
-    const headers = ['商品 ID', '商品名稱', '分類', '規格 SKU 數量', '建立時間'];
-    const rows = products.map(p => [
-      p.product_id,
-      p.name,
-      p.category,
-      (productSkusMap[p.product_id] || []).length,
-      p.created_at || ''
-    ]);
-    exportToCsv(`感情失敗之友會_商品名冊_${dateStr}.csv`, headers, rows);
+    const headers = [
+      '商品 ID',
+      '商品名稱',
+      '商品分類',
+      'SKU 編號',
+      '尺寸規格',
+      '貨品歸屬主理人',
+      '市集售價',
+      '進貨底價成本',
+      '家內倉庫存量',
+      '市集現場存量',
+      '總庫存量',
+      '進貨總貨值',
+      '建檔人',
+      '建立時間'
+    ];
+    const rows = [];
+    products.forEach(p => {
+      const pSkus = productSkusMap[p.product_id] || [];
+      if (pSkus.length === 0) {
+        rows.push([
+          p.product_id,
+          p.name,
+          p.category || '衣服',
+          '-',
+          '無規格',
+          p.creator || '攤位公家',
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          p.creator || '攤位公家',
+          p.created_at || ''
+        ]);
+      } else {
+        pSkus.forEach(s => {
+          const homeQty = Number(s.home_qty) || 0;
+          const stallQty = Number(s.stall_qty) || 0;
+          const totalQty = homeQty + stallQty;
+          const cost = Number(s.cost) || 0;
+          const price = Number(s.price) || 0;
+          const totalCostValue = cost * totalQty;
+
+          rows.push([
+            p.product_id,
+            p.name,
+            p.category || '衣服',
+            s.sku_id || '-',
+            s.variant_name || '標準',
+            s.owner || p.creator || '攤位公家',
+            price,
+            cost,
+            homeQty,
+            stallQty,
+            totalQty,
+            totalCostValue,
+            p.creator || '攤位公家',
+            p.created_at || ''
+          ]);
+        });
+      }
+    });
+    exportToCsv(`感情失敗之友會_商品母檔與規格清冊_${dateStr}.csv`, headers, rows);
   };
 
   return (

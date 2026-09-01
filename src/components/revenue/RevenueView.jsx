@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Icons } from '../common/Icons';
+import { realtime } from '../../services/realtime';
+import { formatTaiwanTime, exportToCsv } from '../../utils/formatters';
 import TodayTab from './TodayTab';
 import MonthTab from './MonthTab';
 import EventTab from './EventTab';
 import EodModal from './EodModal';
-import { exportToCsv, formatTaiwanTime } from '../../utils/formatters';
-import { realtime } from '../../services/realtime';
 
 export default function RevenueView({
   onFetchTodaySales,
@@ -17,39 +17,43 @@ export default function RevenueView({
   onSyncSheets,
   user
 }) {
-  const [viewTab, setViewTab] = useState('today');
-  const [todaySales, setTodaySales] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [viewTab, setViewTab] = useState('today'); // 'today' | 'month' | 'event'
   const [selectedMonth, setSelectedMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
-  const [currentMonthData, setCurrentMonthData] = useState({});
-  const [allEvents, setAllEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState('');
+  const [allEvents, setAllEvents] = useState([]);
+  
+  const [todaySales, setTodaySales] = useState([]);
+  const [currentMonthData, setCurrentMonthData] = useState({});
   const [currentEventData, setCurrentEventData] = useState({});
-  const [showEodModal, setShowEodModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isEodModalOpen, setIsEodModalOpen] = useState(false);
 
+  // 統一統計計算函式 (含折讓加權分攤、毛利正負值計算、多活動標籤聚合)
   const calculateStats = (salesList = []) => {
     const valid = salesList.filter(s => s.status !== '已作廢');
-    let rev = 0, cost = 0, items = 0;
-    let pm = { "現金": 0, "LinePay": 0, "街口": 0, "轉帳": 0, "公關贈送": 0 };
-    let owners = {};
-    let dailyMap = {};
-    let allSalesRecords = [];
+    let rev = 0;
+    let cost = 0;
+    let items = 0;
+    const pm = {};
+    const owners = {};
+    const dailyMap = {};
+    const allSalesRecords = [];
 
     valid.forEach(s => {
-      const pMethod = s.payment_method || '現金';
-      const isPR = pMethod === '公關贈送';
+      const isPR = s.payment_method === '公關贈送';
       const orderOrig = Number(s.total_amount || 0);
-      const orderFinal = isPR ? 0 : Number(s.final_amount !== undefined ? s.final_amount : (s.finalAmount !== undefined ? s.finalAmount : (orderOrig - Number(s.discount_amount || 0))));
+      const orderFinal = isPR ? 0 : (s.final_amount !== undefined ? Number(s.final_amount) : (s.finalAmount !== undefined ? Number(s.finalAmount) : orderOrig));
+      const discountRatio = isPR ? 0 : (orderOrig > 0 ? (orderFinal / orderOrig) : 1);
+      const sDate = s.date || (s.timestamp ? s.timestamp.split('T')[0] : formatTaiwanTime(new Date(), 'date'));
+      const sEvent = s.eventName || s.channelName || '一般現場';
+      const pMethod = s.payment_method || '現金';
+      const operatorName = s.operator || '現場收銀員';
 
       rev += orderFinal;
       pm[pMethod] = (pm[pMethod] || 0) + orderFinal;
-
-      const discountRatio = orderOrig > 0 ? (orderFinal / orderOrig) : (isPR ? 0 : 1);
-      const sDate = s.timestamp ? formatTaiwanTime(s.timestamp, 'date') : (s.date || '未知日期');
-      const sEvent = s.eventName || s.channelName || '一般現場';
 
       if (!dailyMap[sDate]) {
         dailyMap[sDate] = {
@@ -98,6 +102,7 @@ export default function RevenueView({
         owners[itemOwner].totalCost += itemTotalCost;
         owners[itemOwner].totalProfit += itemRealProfit;
         owners[itemOwner].totalQty += itemQty;
+
         const itemRecord = {
           timestamp: s.timestamp,
           date: sDate,
@@ -113,7 +118,9 @@ export default function RevenueView({
           discount: itemSubtotal - itemRealSubtotal,
           realSubtotal: itemRealSubtotal,
           realProfit: itemRealProfit,
-          paymentMethod: pMethod
+          paymentMethod: pMethod,
+          operator: operatorName,
+          status: s.status || '已完成'
         };
         owners[itemOwner].salesRecords.push(itemRecord);
         allSalesRecords.push(itemRecord);
@@ -138,7 +145,7 @@ export default function RevenueView({
       totalItemsSold: items,
       paymentBreakdown: pm,
       ownerBreakdown: owners,
-      dailyBreakdown,
+      dailyBreakdown: dailyBreakdown,
       salesRecords: allSalesRecords
     };
   };
@@ -218,24 +225,61 @@ export default function RevenueView({
 
   const todayData = calculateStats(todaySales);
 
+  // 🌟 匯出今日銷售明細 CSV (完整包含成本、毛利、收款人、折讓與分帳)
   const handleExportTodayCsv = () => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
-    const headers = ['訂單編號', '日期時間', '活動場次/通路', '商品名稱', '商品規格', '數量', '單價', '實收金額', '付款方式', '操作員', '狀態'];
+    const headers = [
+      '訂單編號',
+      '日期時間',
+      '活動場次/通路',
+      '商品名稱',
+      '規格尺寸',
+      '貨品歸屬主理人',
+      '數量',
+      '標價單價',
+      '標價總額',
+      '折讓金額',
+      '實收分帳金額',
+      '進貨成本小計',
+      '實質毛利',
+      '收款方式',
+      '收款人/收銀員',
+      '訂單狀態'
+    ];
     const rows = [];
     todaySales.forEach(s => {
+      const isPR = s.payment_method === '公關贈送';
+      const origTotal = Number(s.total_amount || 0);
+      const finalTotal = isPR ? 0 : (s.final_amount !== undefined ? Number(s.final_amount) : Number(s.total_amount || 0));
+      const discountRatio = isPR ? 0 : (origTotal > 0 ? (finalTotal / origTotal) : 1);
+
       (s.items || []).forEach(item => {
+        const itemQty = Number(item.qty || 1);
+        const itemPrice = Number(item.price || 0);
+        const itemCost = Number(item.cost || 0);
+        const itemOrigTotal = itemPrice * itemQty;
+        const itemRealSubtotal = isPR ? 0 : Math.round(itemOrigTotal * discountRatio);
+        const itemDiscount = itemOrigTotal - itemRealSubtotal;
+        const itemTotalCost = itemCost * itemQty;
+        const itemProfit = itemRealSubtotal - itemTotalCost;
+
         rows.push([
           s.order_id,
           s.timestamp ? formatTaiwanTime(s.timestamp, 'datetime') : s.date,
           s.eventName || s.channelName || '一般現場',
           item.productName,
           item.variantName,
-          item.qty,
-          item.price,
-          s.final_amount,
+          item.owner || '攤位公家',
+          itemQty,
+          itemPrice,
+          itemOrigTotal,
+          itemDiscount > 0 ? itemDiscount : 0,
+          itemRealSubtotal,
+          itemTotalCost,
+          itemProfit,
           s.payment_method,
-          s.operator || '現場小幫手',
+          s.operator || '現場收銀員',
           s.status || '已完成'
         ]);
       });
@@ -243,40 +287,105 @@ export default function RevenueView({
     exportToCsv(`感情失敗之友會_今日銷售明細_${dateStr}.csv`, headers, rows);
   };
 
+  // 🌟 匯出當月全月交易明細 CSV (完整包含成本、毛利、收款人、折讓與分帳)
   const handleExportMonthSalesCsv = () => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
-    const headers = ['訂單編號', '日期時間', '活動場次/通路', '商品名稱', '規格', '主理人', '數量', '售價', '收款方式', '狀態'];
-    const rows = (currentMonthData.salesRecords || []).map(r => [
-      r.orderId,
-      r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
-      r.eventName || r.channelName || '一般現場',
-      r.productName,
-      r.variantName,
-      r.owner || '攤位公家',
-      r.qty,
-      r.price,
-      r.paymentMethod,
-      '已完成'
-    ]);
+    const headers = [
+      '訂單編號',
+      '日期時間',
+      '活動場次/通路',
+      '商品名稱',
+      '規格尺寸',
+      '貨品歸屬主理人',
+      '數量',
+      '標價單價',
+      '標價總額',
+      '折讓金額',
+      '實收分帳金額',
+      '進貨成本小計',
+      '實質毛利',
+      '收款方式',
+      '收款人/收銀員',
+      '訂單狀態'
+    ];
+    const rows = (currentMonthData.salesRecords || []).map(r => {
+      const origPrice = Number(r.originalPrice || r.price || 0);
+      const qty = Number(r.qty || 1);
+      const origTotal = origPrice * qty;
+      const costTotal = (Number(r.cost) || 0) * qty;
+      const realSubtotal = Number(r.realSubtotal !== undefined ? r.realSubtotal : (origTotal - (r.discount || 0)));
+      const realProfit = Number(r.realProfit !== undefined ? r.realProfit : (realSubtotal - costTotal));
+
+      return [
+        r.orderId,
+        r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
+        r.eventName || r.channelName || '一般現場',
+        r.productName,
+        r.variantName,
+        r.owner || '攤位公家',
+        qty,
+        origPrice,
+        origTotal,
+        r.discount || 0,
+        realSubtotal,
+        costTotal,
+        realProfit,
+        r.paymentMethod,
+        r.operator || '現場收銀員',
+        r.status || '已完成'
+      ];
+    });
     exportToCsv(`感情失敗之友會_${selectedMonth}_全月交易明細_${dateStr}.csv`, headers, rows);
   };
 
+  // 🌟 匯出市集場次銷售明細 CSV (完整包含成本、毛利、收款人、折讓與分帳)
   const handleExportEventSalesCsv = () => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
-    const headers = ['訂單編號', '日期時間', '場次名稱', '商品名稱', '規格', '主理人', '數量', '售價', '收款方式'];
-    const rows = (currentEventData.salesRecords || []).map(r => [
-      r.orderId,
-      r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
-      selectedEvent,
-      r.productName,
-      r.variantName,
-      r.owner || '攤位公家',
-      r.qty,
-      r.price,
-      r.paymentMethod
-    ]);
+    const headers = [
+      '訂單編號',
+      '日期時間',
+      '場次名稱',
+      '商品名稱',
+      '規格尺寸',
+      '貨品歸屬主理人',
+      '數量',
+      '標價單價',
+      '標價總額',
+      '折讓金額',
+      '實收分帳金額',
+      '進貨成本小計',
+      '實質毛利',
+      '收款方式',
+      '收款人/收銀員'
+    ];
+    const rows = (currentEventData.salesRecords || []).map(r => {
+      const origPrice = Number(r.originalPrice || r.price || 0);
+      const qty = Number(r.qty || 1);
+      const origTotal = origPrice * qty;
+      const costTotal = (Number(r.cost) || 0) * qty;
+      const realSubtotal = Number(r.realSubtotal !== undefined ? r.realSubtotal : (origTotal - (r.discount || 0)));
+      const realProfit = Number(r.realProfit !== undefined ? r.realProfit : (realSubtotal - costTotal));
+
+      return [
+        r.orderId,
+        r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
+        selectedEvent,
+        r.productName,
+        r.variantName,
+        r.owner || '攤位公家',
+        qty,
+        origPrice,
+        origTotal,
+        r.discount || 0,
+        realSubtotal,
+        costTotal,
+        realProfit,
+        r.paymentMethod,
+        r.operator || '現場收銀員'
+      ];
+    });
     exportToCsv(`感情失敗之友會_市集場次_${selectedEvent}_銷售明細_${dateStr}.csv`, headers, rows);
   };
 
@@ -320,21 +429,23 @@ export default function RevenueView({
         </div>
       </div>
 
-      {/* 視角一：今日戰報 */}
+      {/* 主要視圖內容切換 */}
       {viewTab === 'today' && (
         <TodayTab
           todayData={todayData}
           todaySales={todaySales}
           loading={loading}
           onRefresh={loadToday}
-          onOpenEodModal={() => setShowEodModal(true)}
+          onOpenEodModal={() => setIsEodModalOpen(true)}
           onExportCsv={handleExportTodayCsv}
-          onVoidSale={onVoidSale}
+          onVoidSale={async (orderId, operator) => {
+            await onVoidSale(orderId, operator);
+            loadToday();
+          }}
           user={user}
         />
       )}
 
-      {/* 視角二：當月統計 */}
       {viewTab === 'month' && (
         <MonthTab
           selectedMonth={selectedMonth}
@@ -346,7 +457,6 @@ export default function RevenueView({
         />
       )}
 
-      {/* 視角三：市集場次分析 */}
       {viewTab === 'event' && (
         <EventTab
           allEvents={allEvents}
@@ -359,14 +469,21 @@ export default function RevenueView({
         />
       )}
 
-      {/* 收攤日結確認 Modal */}
-      {showEodModal && (
+      {/* 收攤日結結算彈窗 */}
+      {isEodModalOpen && (
         <EodModal
-          todayData={todayData}
-          onClose={() => setShowEodModal(false)}
-          onConfirmCloseout={async (reportData) => {
-            await onSaveDailyReport(reportData);
-            await onSyncSheets();
+          isOpen={isEodModalOpen}
+          onClose={() => setIsEodModalOpen(false)}
+          todaySales={todaySales}
+          user={user}
+          allEvents={allEvents}
+          onSaveReport={async (reportData) => {
+            const res = await onSaveDailyReport(reportData);
+            if (res && res.success) {
+              alert("日結戰報已成功上傳至 Google 試算表！");
+              setIsEodModalOpen(false);
+              loadToday();
+            }
           }}
         />
       )}

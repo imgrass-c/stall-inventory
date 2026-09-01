@@ -22,21 +22,47 @@ export default function MonthTab({
   const handleExportPartnerSalesCsv = (partnerName, salesRecords, monthStr) => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
-    const headers = ['日期時間', '場次活動', '商品名稱', '商品規格', '銷售數量', '標價單價', '折讓金額', '實收分帳金額', '實質毛利', '收款方式', '商品歸屬'];
+    const headers = [
+      '訂單編號',
+      '日期時間',
+      '場次活動/通路',
+      '商品名稱',
+      '規格尺寸',
+      '貨品歸屬主理人',
+      '銷售數量',
+      '標價單價',
+      '標價總額',
+      '折讓金額',
+      '實收分帳金額',
+      '進貨成本小計',
+      '實質毛利',
+      '收款方式',
+      '收款人/收銀員'
+    ];
     const rows = (salesRecords || []).map(r => {
-      const realProfit = r.realProfit !== undefined ? r.realProfit : (Number(r.realSubtotal || 0) - (Number(r.cost || 0) * Number(r.qty || 1)));
+      const origPrice = Number(r.originalPrice || r.price || 0);
+      const qty = Number(r.qty || 1);
+      const origTotal = origPrice * qty;
+      const costTotal = (Number(r.cost) || 0) * qty;
+      const realSubtotal = Number(r.realSubtotal !== undefined ? r.realSubtotal : (origTotal - (r.discount || 0)));
+      const realProfit = Number(r.realProfit !== undefined ? r.realProfit : (realSubtotal - costTotal));
+
       return [
+        r.orderId || '-',
         r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
         r.eventName || '一般現場',
         r.productName,
         r.variantName,
-        r.qty,
-        r.originalPrice,
+        partnerName,
+        qty,
+        origPrice,
+        origTotal,
         r.discount || 0,
-        r.realSubtotal,
+        realSubtotal,
+        costTotal,
         realProfit,
         r.paymentMethod,
-        partnerName
+        r.operator || '現場收銀員'
       ];
     });
     exportToCsv(`感情失敗之友會_夥伴分帳明細_${monthStr}_${partnerName}_${dateStr}.csv`, headers, rows);
