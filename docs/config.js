@@ -17,5 +17,5 @@ window.STALL_CONFIG = {
     measurementId: "G-XJMR8VKQ04"
   },
   // Google Apps Script URL (用於日結報表備份)
-  GAS_API_URL: "https://script.google.com/macros/s/AKfycbwo5oT02hAuKme8e34F07MDktlxnJhAS8ZmKNL8nfljn6DEehlLh14lNQn9D8HzQJMZyw/exec"
+  GAS_API_URL: "https://script.google.com/macros/s/AKfycbzRQZRkShflU6V5S13nMiikCFqFb1MnqA0dixEMvj0mBaW4HflKb6nBJXExQhDHnurH4w/exec"
 };
