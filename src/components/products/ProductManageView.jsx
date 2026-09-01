@@ -265,10 +265,13 @@ export default function ProductManageView({
       '貨品歸屬主理人',
       '市集售價',
       '進貨底價成本',
+      '單件預期毛利',
+      '標定毛利率',
       '家內倉庫存量',
       '市集現場存量',
       '總庫存量',
-      '進貨總貨值',
+      '進貨成本總貨值',
+      '預期售價總貨值',
       '建檔人',
       '建立時間'
     ];
@@ -286,6 +289,9 @@ export default function ProductManageView({
           0,
           0,
           0,
+          '0%',
+          0,
+          0,
           0,
           0,
           0,
@@ -299,7 +305,10 @@ export default function ProductManageView({
           const totalQty = homeQty + stallQty;
           const cost = Number(s.cost) || 0;
           const price = Number(s.price) || 0;
+          const unitProfit = price - cost;
+          const margin = price > 0 ? `${((unitProfit / price) * 100).toFixed(1)}%` : '0%';
           const totalCostValue = cost * totalQty;
+          const totalRetailValue = price * totalQty;
 
           rows.push([
             p.product_id,
@@ -310,10 +319,13 @@ export default function ProductManageView({
             s.owner || p.creator || '攤位公家',
             price,
             cost,
+            unitProfit,
+            margin,
             homeQty,
             stallQty,
             totalQty,
             totalCostValue,
+            totalRetailValue,
             p.creator || '攤位公家',
             p.created_at || ''
           ]);

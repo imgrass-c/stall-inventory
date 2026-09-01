@@ -1,11 +1,11 @@
 /**
  * ====================================================================
- * 感情失敗之友會 POS - Google Apps Script 後端 API (v2.5.0)
+ * 感情失敗之友會 POS - Google Apps Script 後端 API (v3.0.0 旗艦版)
  * 支援功能：
- * 1. Daily_Reports (單日日結戰報自動存檔)
- * 2. Monthly_Summary (當月營收與毛利月報表自動彙整)
- * 3. Sales_Orders (銷售交易明細總庫 - 含成本、毛利與折讓)
- * 4. Inventory_Master (全庫存主檔 - 雙庫存與總貨值)
+ * 1. Daily_Reports (單日日結戰報 - 含客單價、折讓與各夥伴分帳彙整)
+ * 2. Monthly_Summary (當月營收與毛利月報表自動彙整 - 含客單價與毛利率)
+ * 3. Sales_Orders (銷售訂單總庫 - 含通路類型、單品成本、毛利與利潤率)
+ * 4. Inventory_Master (全庫存主檔 - 雙庫存、總進貨貨值與預期零售總額)
  * 5. Events_Master (市集活動與追加支出損益主檔)
  * 6. Products (商品母檔清單)
  * 7. Users_Config (成員權限與審核名冊)
@@ -126,8 +126,8 @@ function handleSaveDailyReport(data) {
   if (!sheet) {
     sheet = ss.insertSheet("Daily_Reports");
     sheet.appendRow([
-      "結算日期", "出攤活動/通路", "售出總件數", "總訂單數", "實收營業額", "底價總成本", "實質總毛利", "毛利率", 
-      "現金實收", "LinePay", "街口", "轉帳", "公關贈送", 
+      "結算日期", "出攤活動/通路", "售出總件數", "總訂單數", "原標價總額", "總折讓讓利", "實收營業額", "底價總成本", "實質總毛利", "毛利率", 
+      "平均客單價(AOV)", "平均件單價", "現金實收", "LinePay", "街口", "轉帳", "公關贈送", 
       "各主理人分帳彙總", "結算時間", "結算主理人"
     ]);
   }
@@ -136,19 +136,33 @@ function handleSaveDailyReport(data) {
   const pb = d.paymentBreakdown || {};
   const ob = d.ownerBreakdown || {};
 
-  const partnerSummary = Object.entries(ob).map(([name, data]) => {
-    return `${name}: 實收$${data.totalRevenue} (毛利$${data.totalProfit}, ${data.totalQty}件)`;
+  const totalRev = Number(d.totalRevenue) || 0;
+  const totalCost = Number(d.totalCost) || 0;
+  const totalProfit = Number(d.totalProfit) || (totalRev - totalCost);
+  const totalOrders = Number(d.totalOrders) || 0;
+  const totalItems = Number(d.totalItemsSold) || 0;
+  const grossTotal = Number(d.totalOriginalAmount) || (totalRev + (Number(d.totalDiscount) || 0));
+  const discountTotal = grossTotal - totalRev;
+  const aov = totalOrders > 0 ? Math.round(totalRev / totalOrders) : 0;
+  const aip = totalItems > 0 ? Math.round(totalRev / totalItems) : 0;
+
+  const partnerSummary = Object.entries(ob).map(([name, pData]) => {
+    return `${name}: 實收$${pData.totalRevenue} (毛利$${pData.totalProfit}, ${pData.totalQty}件)`;
   }).join(" | ");
 
   sheet.appendRow([
     d.date || Utilities.formatDate(new Date(), "GMT+8", "yyyy-MM-dd"),
     d.eventName || "市集出攤",
-    Number(d.totalItemsSold) || 0,
-    Number(d.totalOrders) || 0,
-    Number(d.totalRevenue) || 0,
-    Number(d.totalCost) || 0,
-    Number(d.totalProfit) || 0,
-    `${d.profitMargin || 0}%`,
+    totalItems,
+    totalOrders,
+    grossTotal,
+    discountTotal > 0 ? discountTotal : 0,
+    totalRev,
+    totalCost,
+    totalProfit,
+    `${d.profitMargin || (totalRev > 0 ? ((totalProfit / totalRev) * 100).toFixed(1) : 0)}%`,
+    aov,
+    aip,
     Number(pb["現金"]) || 0,
     Number(pb["LinePay"]) || 0,
     Number(pb["街口"]) || 0,
@@ -199,11 +213,11 @@ function updateMonthlySummarySheet(ss) {
     m.daysCount += 1;
     m.totalItems += Number(r[2]) || 0;
     m.totalOrders += Number(r[3]) || 0;
-    m.totalRevenue += Number(r[4]) || 0;
-    m.totalCost += Number(r[5]) || 0;
-    m.totalProfit += Number(r[6]) || 0;
-    m.cashTotal += Number(r[8]) || 0;
-    m.digitalTotal += (Number(r[9]) || 0) + (Number(r[10]) || 0) + (Number(r[11]) || 0);
+    m.totalRevenue += Number(r[6]) || Number(r[4]) || 0;
+    m.totalCost += Number(r[7]) || Number(r[5]) || 0;
+    m.totalProfit += Number(r[8]) || Number(r[6]) || 0;
+    m.cashTotal += Number(r[12]) || Number(r[8]) || 0;
+    m.digitalTotal += (Number(r[13]) || 0) + (Number(r[14]) || 0) + (Number(r[15]) || 0);
   });
 
   let monthlySheet = ss.getSheetByName("Monthly_Summary");
@@ -212,11 +226,12 @@ function updateMonthlySummarySheet(ss) {
   }
   monthlySheet.clearContents();
   monthlySheet.appendRow([
-    "月份 (Year-Month)", "出攤/結算天數", "月總售出件數", "月總單數", "月實收營業額", "月服飾底價成本", "月實質毛利", "平均毛利率", "月現金總額", "月數位支付總額", "最後更新時間"
+    "月份 (Year-Month)", "出攤/結算天數", "月總售出件數", "月總單數", "月實收營業額", "月服飾底價成本", "月實質毛利", "平均毛利率", "月平均客單價", "月現金總額", "月數位支付總額", "最後更新時間"
   ]);
 
   const outputRows = Object.values(monthMap).sort((a, b) => b.yearMonth.localeCompare(a.yearMonth)).map(m => {
-    const margin = m.totalRevenue > 0 ? Math.round((m.totalProfit / m.totalRevenue) * 100) : 0;
+    const margin = m.totalRevenue > 0 ? ((m.totalProfit / m.totalRevenue) * 100).toFixed(1) : 0;
+    const aov = m.totalOrders > 0 ? Math.round(m.totalRevenue / m.totalOrders) : 0;
     return [
       m.yearMonth,
       m.daysCount,
@@ -226,6 +241,7 @@ function updateMonthlySummarySheet(ss) {
       m.totalCost,
       m.totalProfit,
       `${margin}%`,
+      aov,
       m.cashTotal,
       m.digitalTotal,
       new Date()
@@ -244,14 +260,15 @@ function handleFullSyncBackup(params) {
   const ss = getSpreadsheetInstance();
   const targetType = params.syncType || params.targetType || "all";
 
-  // 1. 同步 Inventory_Master (含商品成本與總貨值)
+  // 1. 同步 Inventory_Master (全庫存主檔 - 雙庫存、總進貨貨值與零售貨值)
   if ((targetType === "all" || targetType === "inventory") && params.inventory && Array.isArray(params.inventory)) {
     let invSheet = ss.getSheetByName("Inventory_Master");
     if (!invSheet) invSheet = ss.insertSheet("Inventory_Master");
     invSheet.clearContents();
     invSheet.appendRow([
       "sku_id", "product_id", "product_name", "category", "owner", "variant_name", 
-      "price", "cost", "home_qty", "stall_qty", "total_qty", "total_cost_value", "updated_at"
+      "price", "cost", "unit_profit", "margin", "home_qty", "stall_qty", "total_qty", 
+      "cost_value", "retail_value", "potential_profit", "stock_status", "updated_at"
     ]);
     
     const rows = params.inventory.map(i => {
@@ -260,6 +277,13 @@ function handleFullSyncBackup(params) {
       const total = Number(i.total_qty) || (home + stall);
       const cost = Number(i.cost) || 0;
       const price = Number(i.price) || 0;
+      const unitProfit = price - cost;
+      const margin = price > 0 ? `${((unitProfit / price) * 100).toFixed(1)}%` : '0%';
+      const costVal = cost * total;
+      const retailVal = price * total;
+      const potentialProfit = unitProfit * total;
+      const status = stall === 0 ? '現場缺貨' : (stall <= 2 ? '現場低庫存' : '正常');
+
       return [
         i.sku_id,
         i.product_id,
@@ -269,10 +293,15 @@ function handleFullSyncBackup(params) {
         i.variant_name || "Free",
         price,
         cost,
+        unitProfit,
+        margin,
         home,
         stall,
         total,
-        cost * total,
+        costVal,
+        retailVal,
+        potentialProfit,
+        status,
         i.updated_at || new Date()
       ];
     });
@@ -300,14 +329,14 @@ function handleFullSyncBackup(params) {
     }
   }
 
-  // 3. 同步 Sales_Orders (銷售訂單明細 - 含成本、毛利與折讓)
+  // 3. 同步 Sales_Orders (銷售訂單明細 - 含通路類型、單品成本、毛利與利潤率)
   if ((targetType === "all" || targetType === "sales") && params.sales && Array.isArray(params.sales)) {
     let salesSheet = ss.getSheetByName("Sales_Orders");
     if (!salesSheet) salesSheet = ss.insertSheet("Sales_Orders");
     salesSheet.clearContents();
     salesSheet.appendRow([
-      "order_id", "date", "time", "channel_name", "items_summary", 
-      "total_amount", "discount_amount", "final_amount", "cost_amount", "profit_amount", 
+      "order_id", "date", "time", "channel_name", "channel_type", "items_summary", 
+      "total_amount", "discount_amount", "final_amount", "cost_amount", "profit_amount", "profit_margin", 
       "payment_method", "operator", "status", "timestamp"
     ]);
     
@@ -316,6 +345,7 @@ function handleFullSyncBackup(params) {
       const origTotal = Number(s.total_amount) || 0;
       const finalTotal = isPR ? 0 : (s.final_amount !== undefined ? Number(s.final_amount) : origTotal);
       const discount = Number(s.discount_amount) || 0;
+      const channelTypeStr = s.channelType === 'online' || s.channelName?.includes('賣貨便') ? '網路銷售' : '市集現場';
 
       let orderCost = 0;
       const itemsSummary = (s.items || []).map(i => {
@@ -326,6 +356,7 @@ function handleFullSyncBackup(params) {
       }).join(", ");
 
       const orderProfit = finalTotal - orderCost;
+      const margin = finalTotal > 0 ? `${((orderProfit / finalTotal) * 100).toFixed(1)}%` : (isPR ? '-100%' : '0%');
       const ts = s.timestamp ? new Date(s.timestamp) : new Date();
       const dateStr = s.date || Utilities.formatDate(ts, "GMT+8", "yyyy-MM-dd");
       const timeStr = Utilities.formatDate(ts, "GMT+8", "HH:mm:ss");
@@ -335,12 +366,14 @@ function handleFullSyncBackup(params) {
         dateStr,
         timeStr,
         s.channelName || s.eventName || "市集現場",
+        channelTypeStr,
         itemsSummary,
         origTotal,
         discount,
         finalTotal,
         orderCost,
         orderProfit,
+        margin,
         s.payment_method || "現金",
         s.operator || "現場收銀員",
         s.status || "已完成",

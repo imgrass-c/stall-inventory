@@ -49,6 +49,7 @@ export default function RevenueView({
       const discountRatio = isPR ? 0 : (orderOrig > 0 ? (orderFinal / orderOrig) : 1);
       const sDate = s.date || (s.timestamp ? s.timestamp.split('T')[0] : formatTaiwanTime(new Date(), 'date'));
       const sEvent = s.eventName || s.channelName || '一般現場';
+      const sChannelType = s.channelType === 'online' || s.channelName?.includes('賣貨便') || s.channelName?.includes('網路') ? '網路銷售' : '市集現場';
       const pMethod = s.payment_method || '現金';
       const operatorName = s.operator || '現場收銀員';
 
@@ -77,11 +78,14 @@ export default function RevenueView({
         const itemPrice = Number(item.price || 0);
         const itemCost = Number(item.cost || 0);
         const itemOwner = item.owner || '攤位公家';
+        const itemCategory = item.category || '衣服';
 
         const itemSubtotal = itemPrice * itemQty;
         const itemRealSubtotal = isPR ? 0 : Math.round(itemSubtotal * discountRatio);
+        const itemDiscount = itemSubtotal - itemRealSubtotal;
         const itemTotalCost = itemCost * itemQty;
         const itemRealProfit = itemRealSubtotal - itemTotalCost;
+        const itemMargin = itemRealSubtotal > 0 ? `${((itemRealProfit / itemRealSubtotal) * 100).toFixed(1)}%` : (isPR ? '-100%' : '0%');
 
         cost += itemTotalCost;
         items += itemQty;
@@ -108,16 +112,21 @@ export default function RevenueView({
           date: sDate,
           orderId: s.order_id,
           eventName: sEvent,
+          channelType: sChannelType,
           productName: item.productName,
+          category: itemCategory,
           variantName: item.variantName,
           owner: itemOwner,
           qty: itemQty,
           price: itemPrice,
           originalPrice: itemPrice,
           cost: itemCost,
-          discount: itemSubtotal - itemRealSubtotal,
+          unitDiscount: itemQty > 0 ? Math.round(itemDiscount / itemQty) : 0,
+          discount: itemDiscount,
           realSubtotal: itemRealSubtotal,
+          costTotal: itemTotalCost,
           realProfit: itemRealProfit,
+          profitMargin: itemMargin,
           paymentMethod: pMethod,
           operator: operatorName,
           status: s.status || '已完成'
@@ -225,7 +234,7 @@ export default function RevenueView({
 
   const todayData = calculateStats(todaySales);
 
-  // 🌟 匯出今日銷售明細 CSV (完整包含成本、毛利、收款人、折讓與分帳)
+  // 🌟 匯出今日銷售明細 CSV (完整包含通路類型、商品分類、折讓、成本、毛利與毛利率)
   const handleExportTodayCsv = () => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
@@ -233,7 +242,9 @@ export default function RevenueView({
       '訂單編號',
       '日期時間',
       '活動場次/通路',
+      '通路類型',
       '商品名稱',
+      '商品分類',
       '規格尺寸',
       '貨品歸屬主理人',
       '數量',
@@ -243,6 +254,7 @@ export default function RevenueView({
       '實收分帳金額',
       '進貨成本小計',
       '實質毛利',
+      '實質毛利率',
       '收款方式',
       '收款人/收銀員',
       '訂單狀態'
@@ -253,6 +265,7 @@ export default function RevenueView({
       const origTotal = Number(s.total_amount || 0);
       const finalTotal = isPR ? 0 : (s.final_amount !== undefined ? Number(s.final_amount) : Number(s.total_amount || 0));
       const discountRatio = isPR ? 0 : (origTotal > 0 ? (finalTotal / origTotal) : 1);
+      const channelTypeStr = s.channelType === 'online' || s.channelName?.includes('賣貨便') ? '網路銷售' : '市集現場';
 
       (s.items || []).forEach(item => {
         const itemQty = Number(item.qty || 1);
@@ -263,12 +276,15 @@ export default function RevenueView({
         const itemDiscount = itemOrigTotal - itemRealSubtotal;
         const itemTotalCost = itemCost * itemQty;
         const itemProfit = itemRealSubtotal - itemTotalCost;
+        const itemMargin = itemRealSubtotal > 0 ? `${((itemProfit / itemRealSubtotal) * 100).toFixed(1)}%` : (isPR ? '-100%' : '0%');
 
         rows.push([
           s.order_id,
           s.timestamp ? formatTaiwanTime(s.timestamp, 'datetime') : s.date,
           s.eventName || s.channelName || '一般現場',
+          channelTypeStr,
           item.productName,
+          item.category || '衣服',
           item.variantName,
           item.owner || '攤位公家',
           itemQty,
@@ -278,6 +294,7 @@ export default function RevenueView({
           itemRealSubtotal,
           itemTotalCost,
           itemProfit,
+          itemMargin,
           s.payment_method,
           s.operator || '現場收銀員',
           s.status || '已完成'
@@ -287,7 +304,7 @@ export default function RevenueView({
     exportToCsv(`感情失敗之友會_今日銷售明細_${dateStr}.csv`, headers, rows);
   };
 
-  // 🌟 匯出當月全月交易明細 CSV (完整包含成本、毛利、收款人、折讓與分帳)
+  // 🌟 匯出當月全月交易明細 CSV (完整包含通路類型、商品分類、折讓、成本、毛利與毛利率)
   const handleExportMonthSalesCsv = () => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
@@ -295,7 +312,9 @@ export default function RevenueView({
       '訂單編號',
       '日期時間',
       '活動場次/通路',
+      '通路類型',
       '商品名稱',
+      '商品分類',
       '規格尺寸',
       '貨品歸屬主理人',
       '數量',
@@ -305,6 +324,7 @@ export default function RevenueView({
       '實收分帳金額',
       '進貨成本小計',
       '實質毛利',
+      '實質毛利率',
       '收款方式',
       '收款人/收銀員',
       '訂單狀態'
@@ -316,12 +336,15 @@ export default function RevenueView({
       const costTotal = (Number(r.cost) || 0) * qty;
       const realSubtotal = Number(r.realSubtotal !== undefined ? r.realSubtotal : (origTotal - (r.discount || 0)));
       const realProfit = Number(r.realProfit !== undefined ? r.realProfit : (realSubtotal - costTotal));
+      const margin = realSubtotal > 0 ? `${((realProfit / realSubtotal) * 100).toFixed(1)}%` : (realProfit < 0 ? '-100%' : '0%');
 
       return [
         r.orderId,
         r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
         r.eventName || r.channelName || '一般現場',
+        r.channelType || '市集現場',
         r.productName,
+        r.category || '衣服',
         r.variantName,
         r.owner || '攤位公家',
         qty,
@@ -331,6 +354,7 @@ export default function RevenueView({
         realSubtotal,
         costTotal,
         realProfit,
+        margin,
         r.paymentMethod,
         r.operator || '現場收銀員',
         r.status || '已完成'
@@ -339,7 +363,7 @@ export default function RevenueView({
     exportToCsv(`感情失敗之友會_${selectedMonth}_全月交易明細_${dateStr}.csv`, headers, rows);
   };
 
-  // 🌟 匯出市集場次銷售明細 CSV (完整包含成本、毛利、收款人、折讓與分帳)
+  // 🌟 匯出市集場次銷售明細 CSV (完整包含商品分類、折讓、成本、毛利與毛利率)
   const handleExportEventSalesCsv = () => {
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
@@ -347,7 +371,9 @@ export default function RevenueView({
       '訂單編號',
       '日期時間',
       '場次名稱',
+      '通路類型',
       '商品名稱',
+      '商品分類',
       '規格尺寸',
       '貨品歸屬主理人',
       '數量',
@@ -357,6 +383,7 @@ export default function RevenueView({
       '實收分帳金額',
       '進貨成本小計',
       '實質毛利',
+      '實質毛利率',
       '收款方式',
       '收款人/收銀員'
     ];
@@ -367,12 +394,15 @@ export default function RevenueView({
       const costTotal = (Number(r.cost) || 0) * qty;
       const realSubtotal = Number(r.realSubtotal !== undefined ? r.realSubtotal : (origTotal - (r.discount || 0)));
       const realProfit = Number(r.realProfit !== undefined ? r.realProfit : (realSubtotal - costTotal));
+      const margin = realSubtotal > 0 ? `${((realProfit / realSubtotal) * 100).toFixed(1)}%` : (realProfit < 0 ? '-100%' : '0%');
 
       return [
         r.orderId,
         r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
         selectedEvent,
+        r.channelType || '市集現場',
         r.productName,
+        r.category || '衣服',
         r.variantName,
         r.owner || '攤位公家',
         qty,
@@ -382,6 +412,7 @@ export default function RevenueView({
         realSubtotal,
         costTotal,
         realProfit,
+        margin,
         r.paymentMethod,
         r.operator || '現場收銀員'
       ];

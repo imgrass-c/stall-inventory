@@ -26,7 +26,9 @@ export default function MonthTab({
       '訂單編號',
       '日期時間',
       '場次活動/通路',
+      '通路類型',
       '商品名稱',
+      '商品分類',
       '規格尺寸',
       '貨品歸屬主理人',
       '銷售數量',
@@ -36,6 +38,7 @@ export default function MonthTab({
       '實收分帳金額',
       '進貨成本小計',
       '實質毛利',
+      '實質毛利率',
       '收款方式',
       '收款人/收銀員'
     ];
@@ -46,12 +49,15 @@ export default function MonthTab({
       const costTotal = (Number(r.cost) || 0) * qty;
       const realSubtotal = Number(r.realSubtotal !== undefined ? r.realSubtotal : (origTotal - (r.discount || 0)));
       const realProfit = Number(r.realProfit !== undefined ? r.realProfit : (realSubtotal - costTotal));
+      const margin = realSubtotal > 0 ? `${((realProfit / realSubtotal) * 100).toFixed(1)}%` : (realProfit < 0 ? '-100%' : '0%');
 
       return [
         r.orderId || '-',
         r.timestamp ? formatTaiwanTime(r.timestamp, 'datetime') : r.date,
         r.eventName || '一般現場',
+        r.channelType || '市集現場',
         r.productName,
+        r.category || '衣服',
         r.variantName,
         partnerName,
         qty,
@@ -61,6 +67,7 @@ export default function MonthTab({
         realSubtotal,
         costTotal,
         realProfit,
+        margin,
         r.paymentMethod,
         r.operator || '現場收銀員'
       ];
