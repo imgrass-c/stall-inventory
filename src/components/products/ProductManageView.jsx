@@ -122,7 +122,7 @@ export default function ProductManageView({
     setShowNewCatInput(false);
   };
 
-  // 新增自訂主理人
+  // 新增自訂主理人並同步連動下方尺寸清單
   const handleAddNewOwner = () => {
     if (!newOwnerInput.trim()) return;
     const owner = newOwnerInput.trim();
@@ -130,8 +130,29 @@ export default function ProductManageView({
       setCustomOwners(prev => [...prev, owner]);
     }
     setDefaultOwner(owner);
+    setSkus(prev => prev.map(s => ({ ...s, owner: owner })));
     setNewOwnerInput('');
     setShowNewOwnerInput(false);
+  };
+
+  // 🌟 連動更新基礎售價（同步更新下方所有尺寸規格）
+  const handleBasePriceChange = (val) => {
+    setBasePrice(val);
+    const num = val === '' ? '' : (Number(val) || 0);
+    setSkus(prev => prev.map(s => ({ ...s, price: num })));
+  };
+
+  // 🌟 連動更新基礎成本（同步更新下方所有尺寸規格）
+  const handleBaseCostChange = (val) => {
+    setBaseCost(val);
+    const num = val === '' ? '' : (Number(val) || 0);
+    setSkus(prev => prev.map(s => ({ ...s, cost: num })));
+  };
+
+  // 🌟 連動更新預設歸屬主理人（同步更新下方所有尺寸規格）
+  const handleDefaultOwnerChange = (val) => {
+    setDefaultOwner(val);
+    setSkus(prev => prev.map(s => ({ ...s, owner: val })));
   };
 
   // 開啟建立 Modal 時初始化以目前建檔人為預設，售價 800，成本 300
@@ -144,13 +165,15 @@ export default function ProductManageView({
     setShowAddModal(true);
   };
 
-  // 🌟 一鍵帶入標準服飾尺寸 (預設售價 800，成本 300)
+  // 🌟 一鍵帶入標準服飾尺寸 (套用當前 basePrice 與 baseCost)
   const handleApplyClothingPreset = () => {
     const creator = defaultOwner || currentCreatorName;
+    const currentPrice = Number(basePrice) || 800;
+    const currentCost = Number(baseCost) || 300;
     const newSkus = DEFAULT_CLOTHING_SIZES.map(sz => ({
       variant_name: sz,
-      price: Number(basePrice) || 800,
-      cost: Number(baseCost) || 300,
+      price: currentPrice,
+      cost: currentCost,
       home_qty: 10,
       owner: creator
     }));
@@ -420,7 +443,7 @@ export default function ProductManageView({
       )}
 
       {/* ========================================================================= */}
-      {/* 👕 建立新商品 / 服飾 Modal (支援自訂分類與預設售價 800 / 成本 300) */}
+      {/* 👕 建立新商品 / 服飾 Modal (支援售價與成本即時連動下方所有規格) */}
       {/* ========================================================================= */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3.5 animate-in fade-in overflow-y-auto">
@@ -429,7 +452,7 @@ export default function ProductManageView({
               <div>
                 <h3 className="text-base sm:text-lg font-black text-slate-900">建立新服飾 / 商品母檔</h3>
                 <p className="text-xs text-slate-400 font-bold">
-                  預設歸屬建檔人：<span className="text-purple-700 font-black">【{currentCreatorName}】</span>
+                  預設歸屬建檔人：<span className="text-purple-700 font-black">【{defaultOwner}】</span>
                 </p>
               </div>
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 p-1.5">
@@ -497,40 +520,45 @@ export default function ProductManageView({
                 </div>
               </div>
 
-              {/* 預設售價 (800)、成本 (300) 與主理人 */}
-              <div className="bg-surface-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+              {/* 🌟 統一設定基礎售價 (800)、成本 (300) 與主理人 (即時連動下方所有規格尺寸) */}
+              <div className="bg-purple-50/70 p-3.5 rounded-2xl border-2 border-purple-200 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-black text-slate-700">統一設定基礎售價與歸屬</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-black text-purple-950">統一設定售價與歸屬</span>
+                    <span className="text-[10px] bg-purple-200 text-purple-900 font-bold px-1.5 py-0.2 rounded-md">即時連動下方尺寸</span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setShowNewOwnerInput(!showNewOwnerInput)}
-                    className="text-[10px] font-black text-purple-600 hover:text-purple-700"
+                    className="text-[10px] font-black text-purple-700 hover:text-purple-900 underline"
                   >
-                    {showNewOwnerInput ? '選擇既有人員' : '+ 自訂主理人/成員'}
+                    {showNewOwnerInput ? '選擇既有人員' : '+ 自訂主理人'}
                   </button>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 mb-1">預設售價 (元)</label>
+                    <label className="block text-[10px] font-black text-purple-900 mb-1">統一售價 (元)</label>
                     <input
                       type="number"
                       value={basePrice}
-                      onChange={e => setBasePrice(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-mono font-black text-rose-600 focus:outline-none"
+                      onChange={e => handleBasePriceChange(e.target.value)}
+                      placeholder="800"
+                      className="w-full bg-white border-2 border-purple-200 focus:border-purple-500 rounded-xl px-2.5 py-1.5 text-xs font-mono font-black text-rose-600 focus:outline-none shadow-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 mb-1">預設成本 (元)</label>
+                    <label className="block text-[10px] font-black text-purple-900 mb-1">統一成本 (元)</label>
                     <input
                       type="number"
                       value={baseCost}
-                      onChange={e => setBaseCost(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-mono font-black text-amber-700 focus:outline-none"
+                      onChange={e => handleBaseCostChange(e.target.value)}
+                      placeholder="300"
+                      className="w-full bg-white border-2 border-purple-200 focus:border-purple-500 rounded-xl px-2.5 py-1.5 text-xs font-mono font-black text-amber-700 focus:outline-none shadow-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 mb-1">預設主理人</label>
+                    <label className="block text-[10px] font-black text-purple-900 mb-1">歸屬主理人</label>
                     {showNewOwnerInput ? (
                       <div className="flex gap-1">
                         <input
@@ -551,8 +579,8 @@ export default function ProductManageView({
                     ) : (
                       <select
                         value={defaultOwner}
-                        onChange={e => setDefaultOwner(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none"
+                        onChange={e => handleDefaultOwnerChange(e.target.value)}
+                        className="w-full bg-white border-2 border-purple-200 focus:border-purple-500 rounded-xl px-2 py-1.5 text-xs font-bold text-slate-900 focus:outline-none shadow-sm"
                       >
                         {customOwners.map(o => (
                           <option key={o} value={o}>{o}</option>
@@ -594,7 +622,7 @@ export default function ProductManageView({
               {/* 尺寸 / 規格明細設定 (支援一鍵服飾標準尺寸) */}
               <div className="space-y-2">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5">
-                  <span className="text-xs font-black text-slate-900">尺寸規格明細設定：</span>
+                  <span className="text-xs font-black text-slate-900">尺寸規格明細設定 ({skus.length} 個尺寸)：</span>
                   <div className="flex gap-1.5 flex-wrap">
                     <button
                       type="button"

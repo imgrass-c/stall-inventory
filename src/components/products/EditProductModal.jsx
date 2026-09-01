@@ -33,6 +33,27 @@ export default function EditProductModal({
   const [deletedSkuIds, setDeletedSkuIds] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 🌟 批次統一套用工具
+  const [batchPrice, setBatchPrice] = useState('');
+  const [batchCost, setBatchCost] = useState('');
+
+  const handleApplyBatchPrice = () => {
+    if (batchPrice === '') return;
+    const num = Number(batchPrice) || 0;
+    setSkus(prev => prev.map(s => ({ ...s, price: num })));
+  };
+
+  const handleApplyBatchCost = () => {
+    if (batchCost === '') return;
+    const num = Number(batchCost) || 0;
+    setSkus(prev => prev.map(s => ({ ...s, cost: num })));
+  };
+
+  const handleApplyBatchOwner = (ownerName) => {
+    if (!ownerName) return;
+    setSkus(prev => prev.map(s => ({ ...s, owner: ownerName })));
+  };
+
   // 圖片上傳
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -67,17 +88,18 @@ export default function EditProductModal({
   // 新增尺寸規格
   const handleAddSku = () => {
     const newSkuId = `${product.product_id}-SKU${Date.now().toString().slice(-4)}`;
+    const lastSku = skus[skus.length - 1];
     setSkus(prev => [
       ...prev,
       {
         sku_id: newSkuId,
         product_id: product.product_id,
         variant_name: '',
-        price: 800,
-        cost: 300,
+        price: lastSku ? lastSku.price : 800,
+        cost: lastSku ? lastSku.cost : 300,
         home_qty: 10,
         stall_qty: 0,
-        owner: currentCreatorName || '攤位公家',
+        owner: lastSku ? lastSku.owner : (currentCreatorName || '攤位公家'),
         isNew: true
       }
     ]);
@@ -208,6 +230,65 @@ export default function EditProductModal({
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                   </label>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* 🌟 快速批次統一套用列 (售價 / 成本 / 主理人) */}
+          <div className="bg-purple-50/60 p-3 rounded-2xl border-2 border-purple-200 space-y-2">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-black text-purple-950 flex items-center gap-1">
+                <span>批次統一設定所有尺寸：</span>
+                <span className="text-[10px] text-purple-700 font-bold">(輸入後一鍵更新下方全部規格)</span>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="flex gap-1">
+                <input
+                  type="number"
+                  placeholder="統一售價"
+                  value={batchPrice}
+                  onChange={e => setBatchPrice(e.target.value)}
+                  className="w-full bg-white border border-purple-200 rounded-xl px-2 py-1 text-xs font-mono font-black text-rose-600 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyBatchPrice}
+                  className="px-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-[11px] font-black whitespace-nowrap shadow-sm"
+                >
+                  套用
+                </button>
+              </div>
+
+              <div className="flex gap-1">
+                <input
+                  type="number"
+                  placeholder="統一成本"
+                  value={batchCost}
+                  onChange={e => setBatchCost(e.target.value)}
+                  className="w-full bg-white border border-purple-200 rounded-xl px-2 py-1 text-xs font-mono font-black text-amber-700 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyBatchCost}
+                  className="px-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[11px] font-black whitespace-nowrap shadow-sm"
+                >
+                  套用
+                </button>
+              </div>
+
+              <div>
+                <select
+                  defaultValue=""
+                  onChange={e => handleApplyBatchOwner(e.target.value)}
+                  className="w-full bg-white border border-purple-200 rounded-xl px-2 py-1 text-xs font-bold text-slate-900 focus:outline-none"
+                >
+                  <option value="" disabled>統一套用主理人 ▾</option>
+                  {owners.map(o => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
