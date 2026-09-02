@@ -65,17 +65,6 @@ export default function AuthModal({ onLoginSuccess, onOpenSettings }) {
     }
   };
 
-  const handleQuickDemo = (role) => {
-    const demo = {
-      email: role === '系統管理者' ? 'owner@stall.com' : role === '編輯者' ? 'editor@stall.com' : 'helper@stall.com',
-      name: role === '系統管理者' ? '攤主 (系統管理者)' : role === '編輯者' ? '夥伴 (編輯者)' : '市集小幫手',
-      role: role,
-      status: '已核准'
-    };
-    realtime.setCurrentUser(demo);
-    onLoginSuccess(demo);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 animate-in fade-in overflow-y-auto">
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 max-w-md w-full shadow-2xl space-y-5 my-auto">
@@ -183,33 +172,6 @@ export default function AuthModal({ onLoginSuccess, onOpenSettings }) {
                 <span>{isSubmitting ? '驗證中...' : '送出驗證'}</span>
               </button>
             </form>
-
-            <div className="pt-2 border-t border-slate-100">
-              <div className="text-[11px] text-slate-400 font-bold mb-2 text-center">本機離線與快速測試身分</div>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo('系統管理者')}
-                  className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-black text-slate-700 transition"
-                >
-                  攤主 (管理)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo('編輯者')}
-                  className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-black text-slate-700 transition"
-                >
-                  夥伴 (編輯)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo('一般使用者')}
-                  className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-black text-slate-700 transition"
-                >
-                  小幫手
-                </button>
-              </div>
-            </div>
           </>
         )}
 
