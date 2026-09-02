@@ -149,7 +149,7 @@ export default function ProductManageView({
     setSkus(prev => prev.map(s => ({ ...s, cost: num })));
   };
 
-  // 🌟 連動更新預設歸屬主理人（同步更新下方所有尺寸規格）
+  // 🌟 連動更新預設店長（同步更新下方所有尺寸規格）
   const handleDefaultOwnerChange = (val) => {
     setDefaultOwner(val);
     setSkus(prev => prev.map(s => ({ ...s, owner: val })));
@@ -341,8 +341,8 @@ export default function ProductManageView({
       {/* 頂部操作列 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">商品名冊與服飾建檔</h2>
-          <p className="text-xs text-slate-400 font-bold">點選商品卡片可直接編輯品名、追加/刪除尺寸、調整庫存與售價</p>
+          <h2 className="text-xl font-black text-slate-900 tracking-tight">商品名冊</h2>
+          <p className="text-xs text-slate-400 font-bold">點選商品卡片調整</p>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -359,7 +359,7 @@ export default function ProductManageView({
             className="flex-1 sm:flex-none min-h-[44px] px-5 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-2xl text-sm transition shadow-md flex items-center justify-center gap-2"
           >
             <Icons.Plus className="w-5 h-5 text-white" />
-            <span>建立新服飾/商品</span>
+            <span>建立商品</span>
           </button>
         </div>
       </div>
@@ -370,7 +370,7 @@ export default function ProductManageView({
           <Icons.Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="搜尋商品名稱或尺寸 (如: 貓貓白色, 情緒T, L)..."
+            placeholder="搜尋商品名稱..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="w-full bg-surface-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-rose-400"
@@ -518,7 +518,7 @@ export default function ProductManageView({
           <div className="bg-white rounded-3xl p-5 sm:p-7 max-w-lg w-full shadow-2xl space-y-4 border border-slate-200 my-auto max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-base sm:text-lg font-black text-slate-900">建立新服飾 / 商品母檔</h3>
+                <h3 className="text-base sm:text-lg font-black text-slate-900">建立新商品</h3>
                 <p className="text-xs text-slate-400 font-bold">
                   預設歸屬建檔人：<span className="text-purple-700 font-black">【{defaultOwner}】</span>
                 </p>
@@ -533,7 +533,7 @@ export default function ProductManageView({
               {/* 商品名稱與分類 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-black text-slate-700 mb-1">圖樣/商品名稱 *</label>
+                  <label className="block text-xs font-black text-slate-700 mb-1">商品名稱 *</label>
                   <input
                     type="text"
                     required
@@ -592,15 +592,15 @@ export default function ProductManageView({
               <div className="bg-purple-50/70 p-3.5 rounded-2xl border-2 border-purple-200 space-y-2">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-black text-purple-950">統一設定售價與歸屬</span>
-                    <span className="text-[10px] bg-purple-200 text-purple-900 font-bold px-1.5 py-0.2 rounded-md">即時連動下方尺寸</span>
+                    <span className="text-xs font-black text-purple-950">統一售價設定</span>
+                    <span className="text-[10px] bg-purple-200 text-purple-900 font-bold px-1.5 py-0.2 rounded-md">連動下方</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowNewOwnerInput(!showNewOwnerInput)}
                     className="text-[10px] font-black text-purple-700 hover:text-purple-900 underline"
                   >
-                    {showNewOwnerInput ? '選擇既有人員' : '+ 自訂主理人'}
+                    {showNewOwnerInput ? '選擇既有人員' : '+ 設定店長'}
                   </button>
                 </div>
 
@@ -661,7 +661,7 @@ export default function ProductManageView({
 
               {/* 圖片上傳 */}
               <div>
-                <label className="block text-xs font-black text-slate-700 mb-1">商品展示照片 (縮圖)</label>
+                <label className="block text-xs font-black text-slate-700 mb-1">商品照片</label>
                 <div className="flex items-center gap-3">
                   <div className="w-16 h-16 bg-surface-50 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0 relative">
                     {imageUrl ? (
@@ -690,7 +690,7 @@ export default function ProductManageView({
               {/* 尺寸 / 規格明細設定 (支援一鍵服飾標準尺寸) */}
               <div className="space-y-2">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5">
-                  <span className="text-xs font-black text-slate-900">尺寸規格明細設定 ({skus.length} 個尺寸)：</span>
+                  <span className="text-xs font-black text-slate-900">明細設定 ({skus.length} 個尺寸)：</span>
                   <div className="flex gap-1.5 flex-wrap">
                     <button
                       type="button"
@@ -698,7 +698,7 @@ export default function ProductManageView({
                       className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-[11px] font-black transition flex items-center gap-1 shadow-sm"
                     >
                       <Icons.Products className="w-3 h-3" />
-                      <span>+ 一鍵套用衣服標準尺碼 (S~2XL)</span>
+                      <span>+ 快速套用尺碼（S～2L）</span>
                     </button>
                     <button
                       type="button"

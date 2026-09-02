@@ -425,8 +425,8 @@ export default function RevenueView({
       {/* 頂部分頁切換視角 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">營收與分帳分析中心</h2>
-          <p className="text-xs text-slate-400 font-bold">今日即時戰報、雙夥伴利潤分帳與市集場次毛利統計</p>
+          <h2 className="text-xl font-black text-slate-900 tracking-tight">營收中心</h2>
+          <p className="text-xs text-slate-400 font-bold">今日即時營收、夥伴利潤分帳與市集場次毛利統計</p>
         </div>
 
         <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm text-xs font-black w-full sm:w-auto">
@@ -437,7 +437,7 @@ export default function RevenueView({
             }`}
           >
             <Icons.TrendingUp className="w-3.5 h-3.5" />
-            <span>今日戰報</span>
+            <span>今日營收</span>
           </button>
           <button
             onClick={() => setViewTab('month')}

@@ -109,7 +109,7 @@ export default function TodayTab({
         <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
           <div className="flex items-center gap-2 font-black text-slate-900 text-sm sm:text-base">
             <Icons.Users className="w-5 h-5 text-purple-600" />
-            <span>今日雙夥伴即時利潤分帳</span>
+            <span>夥伴分潤分帳</span>
           </div>
           <span className="text-xs font-bold text-slate-400">各夥伴實收業績與實質毛利</span>
         </div>

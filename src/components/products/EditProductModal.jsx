@@ -284,7 +284,7 @@ export default function EditProductModal({
                   onChange={e => handleApplyBatchOwner(e.target.value)}
                   className="w-full bg-white border border-purple-200 rounded-xl px-2 py-1 text-xs font-bold text-slate-900 focus:outline-none"
                 >
-                  <option value="" disabled>統一套用主理人 ▾</option>
+                  <option value="" disabled>統一套用店長 ▾</option>
                   {owners.map(o => (
                     <option key={o} value={o}>{o}</option>
                   ))}
@@ -297,7 +297,7 @@ export default function EditProductModal({
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <label className="text-xs font-black text-slate-900 flex items-center gap-1">
-                <span>尺寸規格明細與庫存數量</span>
+                <span>明細設定與庫存數量</span>
                 <span className="text-slate-400 font-bold">({skus.length} 個規格)</span>
               </label>
               <button
@@ -348,7 +348,7 @@ export default function EditProductModal({
                     </div>
 
                     <div className="col-span-4">
-                      <span className="text-[10px] font-black text-slate-400 block mb-0.5">貨品歸屬主理人</span>
+                      <span className="text-[10px] font-black text-slate-400 block mb-0.5">店長</span>
                       <select
                         value={sku.owner}
                         onChange={e => updateSku(idx, 'owner', e.target.value)}

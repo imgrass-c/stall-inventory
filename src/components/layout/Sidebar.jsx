@@ -37,7 +37,7 @@ export default function Sidebar({
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className={`w-2 h-2 rounded-full ${isFirebaseLive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-              {isFirebaseLive ? '雲端即時連線' : '離線模式'}
+              {isFirebaseLive ? '連線中' : '離線模式'}
             </span>
           </div>
         </div>
