@@ -10,14 +10,20 @@ export default function Sidebar({
   isFirebaseLive,
   pendingCount
 }) {
-  const tabs = [
-    { id: 'pos', name: '現場收銀', icon: Icons.Pos },
-    { id: 'inventory', name: '即時庫存', icon: Icons.Inventory },
-    { id: 'transfer', name: '市集控管', icon: Icons.Transfer },
-    { id: 'revenue', name: '營收分帳', icon: Icons.Revenue },
-    { id: 'products', name: '商品建檔', icon: Icons.Products },
-    { id: 'members', name: '成員審核', icon: Icons.Users, badge: pendingCount }
+  const isAdmin = user?.role === '系統管理者';
+  const isEditor = user?.role === '編輯者' || isAdmin;
+
+  // 依據角色動態過濾側邊欄可見分頁
+  const allTabs = [
+    { id: 'pos', name: '現場收銀', icon: Icons.Pos, allowed: true },
+    { id: 'inventory', name: '即時庫存', icon: Icons.Inventory, allowed: true },
+    { id: 'transfer', name: '市集控管', icon: Icons.Transfer, allowed: isEditor },
+    { id: 'revenue', name: '營收分帳', icon: Icons.Revenue, allowed: isEditor },
+    { id: 'products', name: '商品建檔', icon: Icons.Products, allowed: isEditor },
+    { id: 'members', name: '成員審核', icon: Icons.Users, badge: pendingCount, allowed: isAdmin }
   ];
+
+  const visibleTabs = allTabs.filter(t => t.allowed);
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 p-5 select-none shadow-sm flex-shrink-0">
@@ -39,7 +45,7 @@ export default function Sidebar({
 
       {/* 導航分頁清單 */}
       <nav className="flex-1 py-6 space-y-1.5 overflow-y-auto">
-        {tabs.map(t => {
+        {visibleTabs.map(t => {
           const Icon = t.icon;
           const active = currentTab === t.id;
           return (
@@ -89,13 +95,16 @@ export default function Sidebar({
           </div>
         )}
 
-        <button
-          onClick={onOpenSettings}
-          className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2"
-        >
-          <Icons.CloudSync className="w-4 h-4 text-slate-500" />
-          <span>後臺與連線設定</span>
-        </button>
+        {/* 只有系統管理者可見後台連線設定按鈕 */}
+        {isAdmin && (
+          <button
+            onClick={onOpenSettings}
+            className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition flex items-center justify-center gap-2"
+          >
+            <Icons.CloudSync className="w-4 h-4 text-slate-500" />
+            <span>後臺與連線設定</span>
+          </button>
+        )}
       </div>
     </aside>
   );

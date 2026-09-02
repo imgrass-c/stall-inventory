@@ -68,6 +68,17 @@ export default function App() {
   const isAdmin = currentUser?.role === '系統管理者';
   const isEditor = currentUser?.role === '編輯者' || isAdmin;
 
+  // 權限重導保護：若當前分頁超出該成員權限範圍，自動回退到現場收銀
+  useEffect(() => {
+    if (currentUser) {
+      if (currentTab === 'members' && !isAdmin) {
+        setCurrentTab('pos');
+      } else if (['transfer', 'revenue', 'products'].includes(currentTab) && !isEditor) {
+        setCurrentTab('pos');
+      }
+    }
+  }, [currentTab, currentUser, isAdmin, isEditor]);
+
   return (
     <div className="min-h-screen flex bg-surface-50 text-slate-900 font-sans select-none pb-20 md:pb-0">
       
@@ -109,6 +120,7 @@ export default function App() {
             inventory={inventory}
             onSyncSheets={() => realtime.syncToGoogleSheets('inventory')}
             isAdmin={isAdmin}
+            isEditor={isEditor}
             onClearData={handleClearAllData}
             onDeleteItem={(skuId) => realtime.deleteInventoryItem(skuId)}
             onNavigateToProducts={() => setCurrentTab('products')}
@@ -116,7 +128,7 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'transfer' && (
+        {currentTab === 'transfer' && isEditor && (
           <TransferView
             inventory={inventory}
             onTransfer={(t, dir, op) => realtime.transferInventory(t, dir, op)}
@@ -124,7 +136,7 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'revenue' && (
+        {currentTab === 'revenue' && isEditor && (
           <RevenueView
             onFetchTodaySales={() => realtime.getTodaySales()}
             onFetchMonthSales={(m) => realtime.getMonthSales(m)}
@@ -133,11 +145,13 @@ export default function App() {
             onSaveDailyReport={(data) => realtime.saveDailyReport(data)}
             onVoidSale={(oid, op) => realtime.voidSale(oid, op)}
             onSyncSheets={() => realtime.syncToGoogleSheets('sales')}
+            isAdmin={isAdmin}
+            isEditor={isEditor}
             user={currentUser}
           />
         )}
 
-        {currentTab === 'products' && (
+        {currentTab === 'products' && isEditor && (
           <ProductManageView
             onAddProduct={(p, s) => realtime.addProductWithSkus(p, s)}
             onUpdateProduct={(p, s, d) => realtime.updateProductWithSkus(p, s, d)}
@@ -151,7 +165,7 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'members' && (
+        {currentTab === 'members' && isAdmin && (
           <UserManageView
             user={currentUser}
             onSyncSheets={() => realtime.syncToGoogleSheets('users')}
@@ -163,12 +177,13 @@ export default function App() {
       <BottomNav
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
+        user={currentUser}
         onOpenSettings={() => setIsSettingsOpen(true)}
         pendingCount={pendingCount}
       />
 
-      {/* 系統設定 Modal */}
-      {isSettingsOpen && (
+      {/* 系統設定 Modal (只有系統管理者可見) */}
+      {isSettingsOpen && isAdmin && (
         <SettingsModal
           onClose={() => setIsSettingsOpen(false)}
           user={currentUser}

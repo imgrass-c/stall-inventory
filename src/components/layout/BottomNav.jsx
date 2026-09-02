@@ -4,22 +4,28 @@ import { Icons } from '../common/Icons';
 export default function BottomNav({
   currentTab,
   setCurrentTab,
+  user,
   onOpenSettings,
   pendingCount
 }) {
-  const tabs = [
-    { id: 'pos', name: '現場收銀', icon: Icons.Pos },
-    { id: 'inventory', name: '即時庫存', icon: Icons.Inventory },
-    { id: 'transfer', name: '市集控管', icon: Icons.Transfer },
-    { id: 'revenue', name: '營收分帳', icon: Icons.Revenue },
-    { id: 'products', name: '商品名冊', icon: Icons.Products },
-    { id: 'members', name: '成員審核', icon: Icons.Users, badge: pendingCount }
+  const isAdmin = user?.role === '系統管理者';
+  const isEditor = user?.role === '編輯者' || isAdmin;
+
+  const allTabs = [
+    { id: 'pos', name: '現場收銀', icon: Icons.Pos, allowed: true },
+    { id: 'inventory', name: '即時庫存', icon: Icons.Inventory, allowed: true },
+    { id: 'transfer', name: '市集控管', icon: Icons.Transfer, allowed: isEditor },
+    { id: 'revenue', name: '營收分帳', icon: Icons.Revenue, allowed: isEditor },
+    { id: 'products', name: '商品建檔', icon: Icons.Products, allowed: isEditor },
+    { id: 'members', name: '成員審核', icon: Icons.Users, badge: pendingCount, allowed: isAdmin }
   ];
+
+  const visibleTabs = allTabs.filter(t => t.allowed);
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-bottom">
       <div className="flex items-center justify-around py-2 px-1">
-        {tabs.map(t => {
+        {visibleTabs.map(t => {
           const Icon = t.icon;
           const active = currentTab === t.id;
           return (
@@ -44,13 +50,17 @@ export default function BottomNav({
             </button>
           );
         })}
-        <button
-          onClick={onOpenSettings}
-          className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600"
-        >
-          <Icons.CloudSync className="w-5 h-5" />
-          <span className="text-[10px] mt-0.5 font-medium">設定</span>
-        </button>
+
+        {/* 只有系統管理者可見手機設定按鈕 */}
+        {isAdmin && (
+          <button
+            onClick={onOpenSettings}
+            className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600"
+          >
+            <Icons.CloudSync className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5 font-medium">設定</span>
+          </button>
+        )}
       </div>
     </div>
   );

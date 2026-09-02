@@ -6,6 +6,7 @@ export default function InventoryView({
   inventory = [],
   onSyncSheets,
   isAdmin = false,
+  isEditor = false,
   onClearData,
   onDeleteItem,
   onNavigateToProducts,
@@ -47,8 +48,9 @@ export default function InventoryView({
   const totalCostValue = useMemo(() => inventory.reduce((s, i) => s + ((Number(i.cost) || 0) * ((i.home_qty || 0) + (i.stall_qty || 0))), 0), [inventory]);
   const totalRetailValue = useMemo(() => inventory.reduce((s, i) => s + ((Number(i.price) || 0) * ((i.home_qty || 0) + (i.stall_qty || 0))), 0), [inventory]);
 
-  // 🌟 超完整庫存清冊 CSV 匯出 (包含單件利潤、毛利率、雙庫存、總進貨貨值與零售貨值)
+  // 🌟 超完整庫存清冊 CSV 匯出 (僅管理員與編輯者可見/可匯出)
   const handleExportCsv = () => {
+    if (!isEditor) return;
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
     const headers = [
@@ -105,6 +107,7 @@ export default function InventoryView({
   };
 
   const handleSyncToSheets = async () => {
+    if (!isEditor) return;
     setIsSyncing(true);
     setSyncMsg('');
     try {
@@ -125,31 +128,34 @@ export default function InventoryView({
   return (
     <div className="flex-1 bg-surface-50 p-3.5 sm:p-6 overflow-y-auto space-y-4 max-w-6xl mx-auto w-full">
       
-      {/* 頂部標題與快速統計指標 */}
+      {/* 頂部標題與快速操作按鈕 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight">即時庫存總表</h2>
-          <p className="text-xs text-slate-400 font-bold">即時雙庫存監控、進貨底價、貨品歸屬與總貨值盤點</p>
+          <p className="text-xs text-slate-400 font-bold">即時雙庫存監控、現貨件數與架上庫存盤點</p>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            onClick={handleExportCsv}
-            className="flex-1 sm:flex-none min-h-[40px] px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 font-black rounded-2xl text-xs border border-slate-200 shadow-sm transition flex items-center justify-center gap-1.5"
-          >
-            <Icons.Download className="w-4 h-4 text-slate-600" />
-            <span>匯出庫存清冊</span>
-          </button>
+        {/* 🌟 匯出庫存清冊 CSV 與同步 Google 試算表：僅系統管理者與編輯者可見 */}
+        {isEditor && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={handleExportCsv}
+              className="flex-1 sm:flex-none min-h-[40px] px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 font-black rounded-2xl text-xs border border-slate-200 shadow-sm transition flex items-center justify-center gap-1.5"
+            >
+              <Icons.Download className="w-4 h-4 text-slate-600" />
+              <span>匯出庫存清冊</span>
+            </button>
 
-          <button
-            onClick={handleSyncToSheets}
-            disabled={isSyncing}
-            className="flex-1 sm:flex-none min-h-[40px] px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs shadow-sm transition flex items-center justify-center gap-1.5"
-          >
-            <Icons.Cloud className="w-4 h-4 text-white" />
-            <span>{isSyncing ? '同步中...' : '同步試算表'}</span>
-          </button>
-        </div>
+            <button
+              onClick={handleSyncToSheets}
+              disabled={isSyncing}
+              className="flex-1 sm:flex-none min-h-[40px] px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-xs shadow-sm transition flex items-center justify-center gap-1.5"
+            >
+              <Icons.Cloud className="w-4 h-4 text-white" />
+              <span>{isSyncing ? '同步中...' : '同步試算表'}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {syncMsg && (
@@ -158,7 +164,7 @@ export default function InventoryView({
         </div>
       )}
 
-      {/* 4 大即時核心指標卡片 */}
+      {/* 4 大即時核心指標卡片 (小幫手隱藏進貨底價總值) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         <div className="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-xs">
           <span className="text-[11px] font-bold text-slate-400">總庫存件數</span>
@@ -178,11 +184,20 @@ export default function InventoryView({
           <span className="text-[10px] text-purple-400 font-bold">待出攤與網路備貨</span>
         </div>
 
-        <div className="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] font-bold text-emerald-600">進貨成本總值</span>
-          <div className="text-xl sm:text-2xl font-black text-emerald-700 font-mono mt-0.5">NT$ {totalCostValue.toLocaleString()}</div>
-          <span className="text-[10px] text-slate-400 font-bold">預期售價 NT$ {totalRetailValue.toLocaleString()}</span>
-        </div>
+        {/* 🌟 若為小幫手 (!isEditor)，隱藏進貨底價總值，顯示總規格款數 */}
+        {isEditor ? (
+          <div className="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-xs">
+            <span className="text-[11px] font-bold text-emerald-600">進貨成本總值</span>
+            <div className="text-xl sm:text-2xl font-black text-emerald-700 font-mono mt-0.5">NT$ {totalCostValue.toLocaleString()}</div>
+            <span className="text-[10px] text-slate-400 font-bold">預期售價 NT$ {totalRetailValue.toLocaleString()}</span>
+          </div>
+        ) : (
+          <div className="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-xs">
+            <span className="text-[11px] font-bold text-blue-600">在庫款式規格數</span>
+            <div className="text-xl sm:text-2xl font-black text-blue-700 font-mono mt-0.5">{inventory.length} 款</div>
+            <span className="text-[10px] text-slate-400 font-bold">現場在售規格總數</span>
+          </div>
+        )}
       </div>
 
       {/* 搜尋與多重篩選器 */}
@@ -231,7 +246,7 @@ export default function InventoryView({
         {filteredInventory.length === 0 ? (
           <div className="p-12 text-center text-slate-400 text-xs sm:text-sm font-bold space-y-2">
             <p>查無符合的庫存資料</p>
-            {inventory.length === 0 && (
+            {isEditor && inventory.length === 0 && (
               <button
                 onClick={onNavigateToProducts}
                 className="px-4 py-2 bg-rose-500 text-white rounded-xl text-xs font-black shadow-sm mt-2"
@@ -247,11 +262,13 @@ export default function InventoryView({
                 <tr>
                   <th className="py-3 px-4">商品與尺寸規格</th>
                   <th className="py-3 px-3">貨品歸屬</th>
-                  <th className="py-3 px-3 text-right">售價 / 成本</th>
+                  {/* 🌟 欄位標題：小幫手只顯示「市集售價」，管理者與編輯者顯示「售價 / 成本」 */}
+                  <th className="py-3 px-3 text-right">{isEditor ? '售價 / 成本' : '市集售價'}</th>
                   <th className="py-3 px-3 text-center">現場庫存</th>
                   <th className="py-3 px-3 text-center">倉庫存量</th>
                   <th className="py-3 px-3 text-center">總件數</th>
-                  <th className="py-3 px-4 text-right">進貨總貨值</th>
+                  {/* 🌟 進貨總貨值：僅管理員與編輯者可見 */}
+                  {isEditor && <th className="py-3 px-4 text-right">進貨總貨值</th>}
                   {isAdmin && <th className="py-3 px-3 text-center">管理</th>}
                 </tr>
               </thead>
@@ -280,9 +297,10 @@ export default function InventoryView({
                         </span>
                       </td>
 
+                      {/* 🌟 價格欄位：小幫手只顯示「$800」，進貨底價 $300 完全隱藏 */}
                       <td className="py-3 px-3 text-right font-mono">
                         <div className="font-black text-rose-600 text-sm">${price}</div>
-                        <div className="text-[10px] text-slate-400">成本 ${cost}</div>
+                        {isEditor && <div className="text-[10px] text-slate-400">成本 ${cost}</div>}
                       </td>
 
                       <td className="py-3 px-3 text-center">
@@ -305,9 +323,12 @@ export default function InventoryView({
                         {total}
                       </td>
 
-                      <td className="py-3 px-4 text-right font-mono font-bold text-slate-700">
-                        ${costVal.toLocaleString()}
-                      </td>
+                      {/* 🌟 進貨總貨值：僅管理員與編輯者可見 */}
+                      {isEditor && (
+                        <td className="py-3 px-4 text-right font-mono font-bold text-slate-700">
+                          ${costVal.toLocaleString()}
+                        </td>
+                      )}
 
                       {isAdmin && (
                         <td className="py-3 px-3 text-center">
