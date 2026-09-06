@@ -710,73 +710,80 @@ export default function ProductManageView({
                   </div>
                 </div>
 
-                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
                   {skus.map((sku, idx) => (
-                    <div key={idx} className="bg-surface-50 p-2.5 rounded-2xl border border-slate-200 flex items-center gap-2 text-xs animate-in fade-in">
-                      <div className="flex-1">
-                        <span className="text-[10px] text-slate-400 block font-bold">尺寸/規格</span>
-                        <input
-                          type="text"
-                          required
-                          placeholder="例: S / M / L"
-                          value={sku.variant_name}
-                          onChange={e => handleUpdateSkuRow(idx, 'variant_name', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 font-black text-slate-900 text-xs"
-                        />
+                    <div key={idx} className="bg-surface-50 p-3 rounded-2xl border border-slate-200 space-y-2 text-xs animate-in fade-in shadow-xs">
+                      {/* 第一列：尺寸規格名稱 (大輸入框，手指超好點) + 店長 + 刪除 */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <span className="text-[10px] text-slate-400 block font-bold mb-0.5">尺寸規格名稱 *</span>
+                          <input
+                            type="text"
+                            required
+                            placeholder="例: S / M / L / XL / Free Size"
+                            value={sku.variant_name}
+                            onChange={e => handleUpdateSkuRow(idx, 'variant_name', e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-black text-slate-900 text-sm focus:outline-none focus:border-rose-400 shadow-xs"
+                          />
+                        </div>
+
+                        <div className="w-28 sm:w-32">
+                          <span className="text-[10px] text-slate-400 block font-bold mb-0.5">店長</span>
+                          <select
+                            value={sku.owner}
+                            onChange={e => handleUpdateSkuRow(idx, 'owner', e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900 focus:outline-none shadow-xs"
+                          >
+                            {customOwners.map(o => (
+                              <option key={o} value={o}>{o}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {skus.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSkuRow(idx)}
+                            className="text-slate-400 hover:text-rose-600 p-2 mt-3.5 transition rounded-lg hover:bg-rose-50"
+                            title="刪除此尺寸"
+                          >
+                            <Icons.Trash className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
 
-                      <div className="w-16">
-                        <span className="text-[10px] text-slate-400 block font-bold">售價</span>
-                        <input
-                          type="number"
-                          value={sku.price}
-                          onChange={e => handleUpdateSkuRow(idx, 'price', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-1.5 py-1 font-mono font-black text-rose-600 text-xs"
-                        />
-                      </div>
+                      {/* 第二列：售價、成本、初始庫存 */}
+                      <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-200/60">
+                        <div>
+                          <span className="text-[10px] text-slate-400 block font-bold mb-0.5">售價 (元)</span>
+                          <input
+                            type="number"
+                            value={sku.price}
+                            onChange={e => handleUpdateSkuRow(idx, 'price', e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 font-mono font-black text-rose-600 text-xs focus:outline-none focus:border-rose-400 shadow-xs"
+                          />
+                        </div>
 
-                      <div className="w-16">
-                        <span className="text-[10px] text-slate-400 block font-bold">成本</span>
-                        <input
-                          type="number"
-                          value={sku.cost}
-                          onChange={e => handleUpdateSkuRow(idx, 'cost', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-1.5 py-1 font-mono font-black text-amber-700 text-xs"
-                        />
-                      </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block font-bold mb-0.5">成本 (元)</span>
+                          <input
+                            type="number"
+                            value={sku.cost}
+                            onChange={e => handleUpdateSkuRow(idx, 'cost', e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 font-mono font-black text-amber-700 text-xs focus:outline-none focus:border-rose-400 shadow-xs"
+                          />
+                        </div>
 
-                      <div className="w-16">
-                        <span className="text-[10px] text-slate-400 block font-bold">家內庫存</span>
-                        <input
-                          type="number"
-                          value={sku.home_qty}
-                          onChange={e => handleUpdateSkuRow(idx, 'home_qty', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-1.5 py-1 font-mono font-black text-slate-900 text-xs"
-                        />
+                        <div>
+                          <span className="text-[10px] text-slate-400 block font-bold mb-0.5">初始庫存 (件)</span>
+                          <input
+                            type="number"
+                            value={sku.home_qty}
+                            onChange={e => handleUpdateSkuRow(idx, 'home_qty', e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 font-mono font-black text-slate-900 text-xs focus:outline-none focus:border-rose-400 shadow-xs"
+                          />
+                        </div>
                       </div>
-
-                      <div className="w-24">
-                        <span className="text-[10px] text-slate-400 block font-bold">歸屬主理人</span>
-                        <select
-                          value={sku.owner}
-                          onChange={e => handleUpdateSkuRow(idx, 'owner', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-1 py-1 text-[11px] font-bold text-slate-900"
-                        >
-                          {customOwners.map(o => (
-                            <option key={o} value={o}>{o}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {skus.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSkuRow(idx)}
-                          className="text-slate-400 hover:text-rose-600 p-1 pt-3"
-                        >
-                          <Icons.Trash className="w-3.5 h-3.5" />
-                        </button>
-                      )}
                     </div>
                   ))}
                 </div>
