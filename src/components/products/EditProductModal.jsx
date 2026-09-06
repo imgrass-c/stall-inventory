@@ -314,45 +314,25 @@ export default function EditProductModal({
               {skus.map((sku, idx) => (
                 <div key={sku.sku_id || idx} className="bg-surface-50 p-3 rounded-2xl border border-slate-200 space-y-2 text-xs animate-in fade-in">
                   
-                  {/* 第一列：尺寸名稱、售價、成本、主理人、刪除 */}
-                  <div className="grid grid-cols-12 gap-2 items-center">
-                    <div className="col-span-3">
-                      <span className="text-[10px] font-black text-slate-400 block mb-0.5">尺寸/規格</span>
+                  {/* 第一列：尺寸名稱 (寬大好點) + 店長 + 刪除 */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <span className="text-[10px] font-black text-slate-400 block mb-0.5">尺寸規格名稱 *</span>
                       <input
                         type="text"
-                        placeholder="例: S / M / L"
+                        placeholder="例: S / M / L / Free Size"
                         value={sku.variant_name}
                         onChange={e => updateSku(idx, 'variant_name', e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 font-black text-slate-900 text-xs focus:outline-none focus:border-rose-400"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-black text-slate-900 text-sm focus:outline-none focus:border-rose-400 shadow-xs"
                       />
                     </div>
 
-                    <div className="col-span-2">
-                      <span className="text-[10px] font-black text-slate-400 block mb-0.5">售價</span>
-                      <input
-                        type="number"
-                        value={sku.price}
-                        onChange={e => updateSku(idx, 'price', e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 font-mono font-black text-rose-600 text-xs focus:outline-none focus:border-rose-400"
-                      />
-                    </div>
-
-                    <div className="col-span-2">
-                      <span className="text-[10px] font-black text-slate-400 block mb-0.5">成本</span>
-                      <input
-                        type="number"
-                        value={sku.cost}
-                        onChange={e => updateSku(idx, 'cost', e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 font-mono font-black text-amber-700 text-xs focus:outline-none focus:border-rose-400"
-                      />
-                    </div>
-
-                    <div className="col-span-4">
+                    <div className="w-28 sm:w-32">
                       <span className="text-[10px] font-black text-slate-400 block mb-0.5">店長</span>
                       <select
                         value={sku.owner}
                         onChange={e => updateSku(idx, 'owner', e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 font-bold text-slate-900 text-xs focus:outline-none"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-900 text-xs focus:outline-none shadow-xs"
                       >
                         {owners.map(o => (
                           <option key={o} value={o}>{o}</option>
@@ -360,15 +340,36 @@ export default function EditProductModal({
                       </select>
                     </div>
 
-                    <div className="col-span-1 flex justify-end pt-3">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSku(idx)}
-                        className="text-slate-400 hover:text-rose-600 p-1 transition"
-                        title="刪除此尺寸"
-                      >
-                        <Icons.Trash className="w-4 h-4" />
-                      </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSku(idx)}
+                      className="text-slate-400 hover:text-rose-600 p-2 mt-4 transition rounded-lg hover:bg-rose-50"
+                      title="刪除此尺寸"
+                    >
+                      <Icons.Trash className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* 第二列：售價與成本 */}
+                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60">
+                    <div>
+                      <span className="text-[10px] font-black text-slate-400 block mb-0.5">售價 (元)</span>
+                      <input
+                        type="number"
+                        value={sku.price}
+                        onChange={e => updateSku(idx, 'price', e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 font-mono font-black text-rose-600 text-xs focus:outline-none focus:border-rose-400 shadow-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-black text-slate-400 block mb-0.5">成本 (元)</span>
+                      <input
+                        type="number"
+                        value={sku.cost}
+                        onChange={e => updateSku(idx, 'cost', e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 font-mono font-black text-amber-700 text-xs focus:outline-none focus:border-rose-400 shadow-xs"
+                      />
                     </div>
                   </div>
 
