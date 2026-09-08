@@ -10,6 +10,17 @@
   }
 }
 
+/* iOS Safe Area & PWA Web App 專用邊界優化 */
+.safe-bottom {
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+  padding-left: max(10px, env(safe-area-inset-left, 10px));
+  padding-right: max(10px, env(safe-area-inset-right, 10px));
+}
+
+.safe-top {
+  padding-top: max(12px, env(safe-area-inset-top, 12px));
+}
+
 /* 自訂極簡滑動條 */
 ::-webkit-scrollbar {
   width: 5px;

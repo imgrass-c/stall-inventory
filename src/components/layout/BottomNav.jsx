@@ -23,8 +23,8 @@ export default function BottomNav({
   const visibleTabs = allTabs.filter(t => t.allowed);
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-bottom">
-      <div className="flex items-center justify-around py-2 px-1">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-bottom shadow-lg">
+      <div className="flex items-center justify-between pt-2.5 pb-1 px-3 sm:px-4">
         {visibleTabs.map(t => {
           const Icon = t.icon;
           const active = currentTab === t.id;
@@ -32,7 +32,7 @@ export default function BottomNav({
             <button
               key={t.id}
               onClick={() => setCurrentTab(t.id)}
-              className={`flex flex-col items-center justify-center flex-1 py-1 relative ${
+              className={`flex flex-col items-center justify-center flex-1 py-1 relative touch-manipulation active:scale-95 transition-transform ${
                 active ? 'text-rose-600' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
@@ -44,7 +44,7 @@ export default function BottomNav({
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] mt-0.5 ${active ? 'font-black' : 'font-medium'}`}>
+              <span className={`text-[10px] mt-0.5 whitespace-nowrap ${active ? 'font-black' : 'font-medium'}`}>
                 {t.name}
               </span>
             </button>
@@ -55,10 +55,10 @@ export default function BottomNav({
         {isAdmin && (
           <button
             onClick={onOpenSettings}
-            className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600"
+            className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-slate-600 touch-manipulation active:scale-95 transition-transform"
           >
             <Icons.CloudSync className="w-5 h-5" />
-            <span className="text-[10px] mt-0.5 font-medium">設定</span>
+            <span className="text-[10px] mt-0.5 font-medium whitespace-nowrap">設定</span>
           </button>
         )}
       </div>

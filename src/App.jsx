@@ -80,7 +80,7 @@ export default function App() {
   }, [currentTab, currentUser, isAdmin, isEditor]);
 
   return (
-    <div className="min-h-screen flex bg-surface-50 text-slate-900 font-sans select-none pb-20 md:pb-0">
+    <div className="min-h-screen flex bg-surface-50 text-slate-900 font-sans select-none pb-28 md:pb-0">
       
       {/* 登入彈窗 */}
       {!currentUser && (

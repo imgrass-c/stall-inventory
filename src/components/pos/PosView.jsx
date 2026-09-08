@@ -372,7 +372,7 @@ export default function PosView({
       {/* 🛒 手機端底部浮動購物車條 (Floating Bottom Cart Bar) */}
       {/* ========================================================================= */}
       {cart.length > 0 && !isDrawerOpen && (
-        <div className="md:hidden fixed bottom-16 left-3 right-3 z-30 animate-in slide-in-from-bottom-5">
+        <div className="md:hidden fixed bottom-20 left-3.5 right-3.5 z-30 animate-in slide-in-from-bottom-5">
           <button
             type="button"
             onClick={() => setIsDrawerOpen(true)}
