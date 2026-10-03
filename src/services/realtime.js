@@ -375,10 +375,50 @@ class RealtimeService {
 
   async verifyUser(email, name = '', photo = '') {
     const cleanEmail = email.trim().toLowerCase();
+    const gasUrl = this.getGasUrl();
+    let gasUser = null;
+
+    // 1. 若有設定 Google Apps Script (GAS) URL，向 Google 試算表的 Users_Config 進行主控白名單查核
+    if (gasUrl) {
+      try {
+        const resp = await fetch(gasUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'verifyUser',
+            email: cleanEmail,
+            name: name || cleanEmail.split('@')[0],
+            picture: photo || ''
+          })
+        });
+        const resJson = await resp.json();
+        if (resJson && resJson.success && resJson.user) {
+          gasUser = resJson.user;
+        }
+      } catch (err) {
+        console.warn("Google 試算表 verifyUser 連線異常，將退回檢查 Firebase 名單:", err);
+      }
+    }
+
     if (this.isFirebaseReady && this.db) {
       const userRef = this.db.collection('users').doc(cleanEmail);
       const doc = await userRef.get();
       
+      // 若 Google 試算表有明確回應，以 Google 試算表的 status 與 role 為準並即時同步至 Firestore
+      if (gasUser) {
+        const userObj = {
+          email: cleanEmail,
+          name: gasUser.name || name || cleanEmail.split('@')[0],
+          picture: photo || gasUser.picture || '',
+          role: gasUser.role || '一般使用者',
+          status: gasUser.status || '待審核',
+          updated_at: new Date().toISOString()
+        };
+        await userRef.set(userObj, { merge: true });
+        return { success: true, user: userObj, status: userObj.status };
+      }
+
+      // 若未設定 GAS 或連線失敗，則依據 Firestore 資料庫中的名單
       if (doc.exists) {
         const data = doc.data();
         const userObj = {
@@ -404,6 +444,14 @@ class RealtimeService {
         return { success: true, user: newUserData, status: newUserData.status, isNew: true };
       }
     } else {
+      if (gasUser) {
+        let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]');
+        const idx = users.findIndex(u => u.email.toLowerCase() === cleanEmail);
+        if (idx >= 0) users[idx] = { ...users[idx], ...gasUser };
+        else users.push(gasUser);
+        localStorage.setItem(STORAGE_KEYS.LOCAL_USERS, JSON.stringify(users));
+        return { success: true, user: gasUser, status: gasUser.status };
+      }
       let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_USERS) || '[]');
       let found = users.find(u => u.email.toLowerCase() === cleanEmail);
       if (!found) {
@@ -512,7 +560,8 @@ class RealtimeService {
         prodSnap.forEach(doc => products.push(doc.data()));
 
         onUpdate({ products, inventory, source: 'firebase' });
-      }, () => {
+      }, (error) => {
+        console.error("Firebase inventory 讀取錯誤（可能為安全性規則阻擋或網路問題）:", error);
         onUpdate(this.getLocalData());
       });
     } else {
