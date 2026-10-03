@@ -189,28 +189,28 @@ export default function PosView({
             )}
           </div>
 
-          {/* 銷售通路快速切換列 */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex bg-white p-1 rounded-2xl border-2 border-slate-200 shadow-sm">
+          {/* 銷售通路快速切換列 (手機版超大友善觸控，電腦端精緻適中) */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5">
+            <div className="flex bg-white p-1 sm:p-1.5 rounded-2xl border-2 border-slate-200 shadow-sm w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => { setChannelType('market'); setChannelName(availableEvents[0]?.name || '一般現場'); }}
-                className={`min-h-[40px] sm:min-h-[44px] px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl transition flex items-center gap-1.5 text-xs sm:text-sm md:text-base font-black ${
-                  channelType === 'market' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'
+                className={`flex-1 sm:flex-initial min-h-[48px] sm:min-h-[44px] px-4 sm:px-4 py-2.5 sm:py-2 rounded-xl transition flex items-center justify-center gap-2 text-sm sm:text-sm md:text-base font-black ${
+                  channelType === 'market' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-600 hover:text-slate-900 active:bg-slate-100'
                 }`}
               >
-                <Icons.Flag className="w-4 h-4" />
-                <span>市集現場 (扣現場)</span>
+                <Icons.Flag className="w-5 h-5 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="whitespace-nowrap">市集現場 (扣現場)</span>
               </button>
               <button
                 type="button"
                 onClick={() => { setChannelType('online'); setChannelName('7-11 賣貨便'); }}
-                className={`min-h-[40px] sm:min-h-[44px] px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl transition flex items-center gap-1.5 text-xs sm:text-sm md:text-base font-black ${
-                  channelType === 'online' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'
+                className={`flex-1 sm:flex-initial min-h-[48px] sm:min-h-[44px] px-4 sm:px-4 py-2.5 sm:py-2 rounded-xl transition flex items-center justify-center gap-2 text-sm sm:text-sm md:text-base font-black ${
+                  channelType === 'online' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 hover:text-slate-900 active:bg-slate-100'
                 }`}
               >
-                <Icons.Store className="w-4 h-4" />
-                <span>網路銷售 (扣倉庫)</span>
+                <Icons.Store className="w-5 h-5 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="whitespace-nowrap">網路銷售 (扣倉庫)</span>
               </button>
             </div>
 
@@ -219,7 +219,7 @@ export default function PosView({
               <select
                 value={channelName}
                 onChange={e => setChannelName(e.target.value)}
-                className="min-h-[40px] sm:min-h-[44px] bg-white border-2 border-rose-300 rounded-2xl px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm md:text-base font-black text-rose-700 shadow-sm focus:outline-none focus:border-rose-500"
+                className="w-full sm:w-auto min-h-[48px] sm:min-h-[44px] bg-white border-2 border-rose-300 rounded-2xl px-4 py-2 text-sm sm:text-sm md:text-base font-black text-rose-700 shadow-sm focus:outline-none focus:border-rose-500"
               >
                 {availableEvents.length === 0 ? (
                   <option value="一般現場">一般現場 (未指定場次)</option>
@@ -232,7 +232,7 @@ export default function PosView({
               <select
                 value={channelName}
                 onChange={e => setChannelName(e.target.value)}
-                className="min-h-[40px] sm:min-h-[44px] bg-white border-2 border-purple-300 rounded-2xl px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm md:text-base font-black text-purple-700 shadow-sm focus:outline-none focus:border-purple-500"
+                className="w-full sm:w-auto min-h-[48px] sm:min-h-[44px] bg-white border-2 border-purple-300 rounded-2xl px-4 py-2 text-sm sm:text-sm md:text-base font-black text-purple-700 shadow-sm focus:outline-none focus:border-purple-500"
               >
                 <option value="7-11 賣貨便">7-11 賣貨便</option>
                 <option value="官方網站">官方網站</option>
