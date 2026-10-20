@@ -42,11 +42,11 @@ export default function InventoryView({
     });
   }, [inventory, searchTerm, filterOwner, filterStockStatus]);
 
-  const totalHomeStock = useMemo(() => inventory.reduce((s, i) => s + (i.home_qty || 0), 0), [inventory]);
-  const totalStallStock = useMemo(() => inventory.reduce((s, i) => s + (i.stall_qty || 0), 0), [inventory]);
+  const totalHomeStock = useMemo(() => filteredInventory.reduce((s, i) => s + (i.home_qty || 0), 0), [filteredInventory]);
+  const totalStallStock = useMemo(() => filteredInventory.reduce((s, i) => s + (i.stall_qty || 0), 0), [filteredInventory]);
   const totalInventoryStock = totalHomeStock + totalStallStock;
-  const totalCostValue = useMemo(() => inventory.reduce((s, i) => s + ((Number(i.cost) || 0) * ((i.home_qty || 0) + (i.stall_qty || 0))), 0), [inventory]);
-  const totalRetailValue = useMemo(() => inventory.reduce((s, i) => s + ((Number(i.price) || 0) * ((i.home_qty || 0) + (i.stall_qty || 0))), 0), [inventory]);
+  const totalCostValue = useMemo(() => filteredInventory.reduce((s, i) => s + ((Number(i.cost) || 0) * ((i.home_qty || 0) + (i.stall_qty || 0))), 0), [filteredInventory]);
+  const totalRetailValue = useMemo(() => filteredInventory.reduce((s, i) => s + ((Number(i.price) || 0) * ((i.home_qty || 0) + (i.stall_qty || 0))), 0), [filteredInventory]);
 
   // 🌟 超完整庫存清冊 CSV 匯出 (僅管理員與編輯者可見/可匯出)
   const handleExportCsv = () => {
@@ -194,7 +194,7 @@ export default function InventoryView({
         ) : (
           <div className="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-xs">
             <span className="text-[11px] font-bold text-blue-600">在庫款式規格數</span>
-            <div className="text-xl sm:text-2xl font-black text-blue-700 font-mono mt-0.5">{inventory.length} 款</div>
+            <div className="text-xl sm:text-2xl font-black text-blue-700 font-mono mt-0.5">{filteredInventory.length} 款</div>
             <span className="text-[10px] text-slate-400 font-bold">現場在售規格總數</span>
           </div>
         )}
