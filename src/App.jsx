@@ -138,7 +138,7 @@ export default function App() {
 
         {currentTab === 'revenue' && isEditor && (
           <RevenueView
-            onFetchTodaySales={() => realtime.getTodaySales()}
+            onFetchTodaySales={(date) => realtime.getTodaySales(date)}
             onFetchMonthSales={(m) => realtime.getMonthSales(m)}
             onFetchEventSales={(ev) => realtime.getEventSales(ev)}
             onFetchAllEvents={() => realtime.getAllEvents()}

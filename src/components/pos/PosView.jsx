@@ -263,7 +263,7 @@ export default function PosView({
 
         </div>
 
-        {/* 🌟 商品網格 (採用自動最小寬度保證 minmax(260px, 1fr)，電腦版絕不再過度壓縮卡片) */}
+        {/* 🌟 商品網格 (採用自適應網格：手機單欄/平板雙欄/桌機依寬度彈性排列) */}
         {filteredProducts.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
             <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
@@ -281,7 +281,7 @@ export default function PosView({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-3.5 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
             {filteredProducts.map(product => {
               const skus = productSkusMap[product.product_id] || [];
               const totalStall = skus.reduce((sum, s) => sum + (s.stall_qty || 0), 0);
@@ -409,7 +409,7 @@ export default function PosView({
       )}
       <aside className={`
         fixed md:static inset-x-0 bottom-0 z-50 md:z-auto
-        w-full md:w-80 lg:w-96 bg-white border-t md:border-t-0 md:border-l border-slate-200
+        w-full md:w-72 lg:w-80 xl:w-96 bg-white border-t md:border-t-0 md:border-l border-slate-200
         p-4 sm:p-5 pb-8 sm:pb-5 flex flex-col justify-between shadow-2xl md:shadow-none flex-shrink-0
         transition-transform duration-300 ease-out
         ${isDrawerOpen ? 'translate-y-0 max-h-[90vh] rounded-t-3xl overflow-y-auto' : 'translate-y-full md:translate-y-0 hidden md:flex'}

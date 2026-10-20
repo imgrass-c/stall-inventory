@@ -18,6 +18,9 @@ export default function RevenueView({
   user
 }) {
   const [viewTab, setViewTab] = useState('today'); // 'today' | 'month' | 'event'
+  const [selectedDate, setSelectedDate] = useState(() => {
+    return new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+  });
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -159,10 +162,11 @@ export default function RevenueView({
     };
   };
 
-  const loadToday = async () => {
+  const loadToday = async (targetDate) => {
     setLoading(true);
+    const dateToFetch = targetDate || selectedDate;
     try {
-      const sales = await onFetchTodaySales();
+      const sales = await onFetchTodaySales(dateToFetch);
       setTodaySales(sales || []);
     } finally {
       setLoading(false);
@@ -210,7 +214,7 @@ export default function RevenueView({
   };
 
   useEffect(() => {
-    if (viewTab === 'today') loadToday();
+    if (viewTab === 'today') loadToday(selectedDate);
     else if (viewTab === 'month') loadMonth(selectedMonth);
     else if (viewTab === 'event') {
       loadAllEventsList();
@@ -232,7 +236,10 @@ export default function RevenueView({
     loadMonth(newMonth);
   };
 
-  const todayData = calculateStats(todaySales);
+  const todayData = {
+    ...calculateStats(todaySales),
+    date: selectedDate
+  };
 
   // 🌟 匯出今日銷售明細 CSV (完整包含通路類型、商品分類、折讓、成本、毛利與毛利率)
   const handleExportTodayCsv = () => {
@@ -465,13 +472,18 @@ export default function RevenueView({
         <TodayTab
           todayData={todayData}
           todaySales={todaySales}
+          selectedDate={selectedDate}
+          onSelectDate={(newDate) => {
+            setSelectedDate(newDate);
+            loadToday(newDate);
+          }}
           loading={loading}
-          onRefresh={loadToday}
+          onRefresh={() => loadToday(selectedDate)}
           onOpenEodModal={() => setIsEodModalOpen(true)}
           onExportCsv={handleExportTodayCsv}
           onVoidSale={async (orderId, operator) => {
             await onVoidSale(orderId, operator);
-            loadToday();
+            loadToday(selectedDate);
           }}
           user={user}
         />

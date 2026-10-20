@@ -5,6 +5,8 @@ import { formatTaiwanTime } from '../../utils/formatters';
 export default function TodayTab({
   todayData,
   todaySales,
+  selectedDate,
+  onSelectDate,
   loading,
   onRefresh,
   onOpenEodModal,
@@ -71,11 +73,32 @@ export default function TodayTab({
       
       {/* 頂部操作列與日結按鈕 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-3xl border border-slate-200 shadow-card">
-        <div className="flex items-center gap-2">
-          <div className="px-3.5 py-2 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 font-black text-xs sm:text-sm flex items-center gap-2">
-            <Icons.Calendar className="w-4 h-4 text-rose-600" />
-            <span>今日日期：{todayData.date}</span>
-          </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <label className="relative flex items-center gap-2 px-3.5 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-2xl text-rose-700 font-black text-xs sm:text-sm cursor-pointer transition shadow-xs">
+            <Icons.Calendar className="w-4 h-4 text-rose-600 flex-shrink-0" />
+            <span>查詢日期：{selectedDate || todayData.date}</span>
+            <input
+              type="date"
+              value={selectedDate || todayData.date}
+              onChange={(e) => {
+                if (e.target.value && onSelectDate) {
+                  onSelectDate(e.target.value);
+                }
+              }}
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+            />
+          </label>
+          {selectedDate && selectedDate !== new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-') && (
+            <button
+              onClick={() => {
+                const today = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+                onSelectDate(today);
+              }}
+              className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition"
+            >
+              回今天
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">

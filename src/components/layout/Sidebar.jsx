@@ -26,14 +26,14 @@ export default function Sidebar({
   const visibleTabs = allTabs.filter(t => t.allowed);
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 p-5 select-none shadow-sm flex-shrink-0">
+    <aside className="hidden md:flex flex-col w-52 lg:w-64 bg-white border-r border-slate-200 p-4 lg:p-5 select-none shadow-sm flex-shrink-0">
       {/* 品牌 Logo */}
       <div className="flex items-center gap-3 pb-6 border-b border-slate-100">
-        <div className="w-10 h-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-md">
+        <div className="w-10 h-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-md flex-shrink-0">
           <Icons.Logo className="w-5 h-5 text-white" />
         </div>
-        <div>
-          <h1 className="font-black text-slate-900 text-base leading-tight tracking-tight">感情失敗之友會</h1>
+        <div className="min-w-0">
+          <h1 className="font-black text-slate-900 text-sm lg:text-base leading-tight tracking-tight truncate">感情失敗之友會</h1>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className={`w-2 h-2 rounded-full ${isFirebaseLive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">

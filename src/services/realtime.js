@@ -805,8 +805,8 @@ class RealtimeService {
     }
   }
 
-  async getTodaySales() {
-    const todayStr = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+  async getTodaySales(targetDate) {
+    const todayStr = targetDate || new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
     let sales = [];
     if (this.isFirebaseReady && this.db) {
       const snap = await this.db.collection('sales_orders').where('date', '==', todayStr).get();
