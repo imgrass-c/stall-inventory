@@ -15,8 +15,17 @@ export default function InventoryView({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterOwner, setFilterOwner] = useState('全部');
   const [filterStockStatus, setFilterStockStatus] = useState('全部');
+  const [stallSortOrder, setStallSortOrder] = useState('default'); // 'default' | 'desc' | 'asc'
   const [syncMsg, setSyncMsg] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+
+  const toggleStallSort = () => {
+    setStallSortOrder(prev => {
+      if (prev === 'default') return 'desc';
+      if (prev === 'desc') return 'asc';
+      return 'default';
+    });
+  };
 
   const owners = useMemo(() => {
     const set = new Set(['全部']);
@@ -48,6 +57,20 @@ export default function InventoryView({
   const totalCostValue = useMemo(() => filteredInventory.reduce((s, i) => s + ((Number(i.cost) || 0) * ((i.home_qty || 0) + (i.stall_qty || 0))), 0), [filteredInventory]);
   const totalRetailValue = useMemo(() => filteredInventory.reduce((s, i) => s + ((Number(i.price) || 0) * ((i.home_qty || 0) + (i.stall_qty || 0))), 0), [filteredInventory]);
 
+  // 現場庫存排序：依多到少或少到多
+  const sortedInventory = useMemo(() => {
+    if (stallSortOrder === 'default') return filteredInventory;
+    return [...filteredInventory].sort((a, b) => {
+      const stallA = Number(a.stall_qty) || 0;
+      const stallB = Number(b.stall_qty) || 0;
+      if (stallSortOrder === 'desc') {
+        return stallB - stallA;
+      } else {
+        return stallA - stallB;
+      }
+    });
+  }, [filteredInventory, stallSortOrder]);
+
   // 🌟 超完整庫存清冊 CSV 匯出 (僅管理員與編輯者可見/可匯出)
   const handleExportCsv = () => {
     if (!isEditor) return;
@@ -71,7 +94,7 @@ export default function InventoryView({
       '預期總毛利空間',
       '庫存健康狀態'
     ];
-    const rows = filteredInventory.map(i => {
+    const rows = sortedInventory.map(i => {
       const home = Number(i.home_qty) || 0;
       const stall = Number(i.stall_qty) || 0;
       const total = (i.home_qty !== undefined && i.stall_qty !== undefined) ? (home + stall) : (Number(i.total_qty) || 0);
@@ -264,7 +287,22 @@ export default function InventoryView({
                   <th className="py-3 px-3">貨品歸屬</th>
                   {/* 🌟 欄位標題：小幫手只顯示「市集售價」，管理者與編輯者顯示「售價 / 成本」 */}
                   <th className="py-3 px-3 text-right">{isEditor ? '售價 / 成本' : '市集售價'}</th>
-                  <th className="py-3 px-3 text-center">現場庫存</th>
+                  <th
+                    onClick={toggleStallSort}
+                    className="py-3 px-3 text-center cursor-pointer select-none hover:bg-slate-100 transition rounded-xl group active:scale-95"
+                    title="點擊依現場庫存排序 (多到少 / 少到多)"
+                  >
+                    <div className="inline-flex items-center justify-center gap-1">
+                      <span className={stallSortOrder !== 'default' ? 'text-rose-600 font-black' : 'group-hover:text-slate-700'}>
+                        現場庫存
+                      </span>
+                      <span className={`text-[11px] font-black ${stallSortOrder !== 'default' ? 'text-rose-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                        {stallSortOrder === 'desc' && '↓多到少'}
+                        {stallSortOrder === 'asc' && '↑少到多'}
+                        {stallSortOrder === 'default' && '⇅'}
+                      </span>
+                    </div>
+                  </th>
                   <th className="py-3 px-3 text-center">倉庫存量</th>
                   <th className="py-3 px-3 text-center">總件數</th>
                   {/* 🌟 進貨總貨值：僅管理員與編輯者可見 */}
@@ -273,7 +311,7 @@ export default function InventoryView({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredInventory.map(item => {
+                {sortedInventory.map(item => {
                   const stall = Number(item.stall_qty) || 0;
                   const home = Number(item.home_qty) || 0;
                   const total = (item.home_qty !== undefined && item.stall_qty !== undefined) ? (home + stall) : (Number(item.total_qty) || 0);

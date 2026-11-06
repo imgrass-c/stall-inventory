@@ -127,7 +127,7 @@ function handleSaveDailyReport(data) {
     sheet = ss.insertSheet("Daily_Reports");
     sheet.appendRow([
       "結算日期", "出攤活動/通路", "售出總件數", "總訂單數", "原標價總額", "總折讓讓利", "實收營業額", "底價總成本", "實質總毛利", "毛利率", 
-      "平均客單價(AOV)", "平均件單價", "現金實收", "LinePay", "街口", "轉帳", "公關贈送", 
+      "平均客單價(AOV)", "平均件單價", "現金實收", "LinePay", "Apple Pay", "轉帳", "公關贈送", 
       "各主理人分帳彙總", "結算時間", "結算主理人"
     ]);
   }
@@ -165,7 +165,7 @@ function handleSaveDailyReport(data) {
     aip,
     Number(pb["現金"]) || 0,
     Number(pb["LinePay"]) || 0,
-    Number(pb["街口"]) || 0,
+    (Number(pb["Apple Pay"]) || Number(pb["街口"]) || 0),
     Number(pb["轉帳"]) || 0,
     Number(pb["公關贈送"]) || 0,
     partnerSummary || "-",

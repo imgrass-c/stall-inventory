@@ -432,7 +432,7 @@ export default function PosView({ products, inventory, onCheckout, user }) {
               <div>
                 <span className="text-slate-500 font-bold block mb-1.5">支付方式：</span>
                 <div className="grid grid-cols-3 gap-1.5">
-                  {['現金', 'LinePay', '街口', '轉帳', '公關贈送'].map(pm => (
+                  {['現金', 'LinePay', 'Apple Pay', '轉帳', '公關贈送'].map(pm => (
                     <button
                       key={pm}
                       type="button"

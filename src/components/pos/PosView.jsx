@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Icons } from '../common/Icons';
 
 export default function PosView({
@@ -23,17 +23,57 @@ export default function PosView({
   // 銷售通路狀態：'market' (市集現場，扣現場庫存) 或 'online' (網路銷售，扣倉庫庫存)
   const [channelType, setChannelType] = useState('market');
   
-  // 可選活動場次
+  // 可選活動場次（排除已撤攤結算，並依「進行中/當日/最接近日期」優先排序）
   const availableEvents = useMemo(() => {
-    return (allEvents || []).filter(e => {
+    const list = (allEvents || []).filter(e => {
       const status = typeof e === 'object' ? e.status : '';
       return status !== '已撤攤結算';
+    });
+
+    const now = new Date();
+    const todayStr = now.toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+    const todayTime = new Date(todayStr).getTime();
+
+    return [...list].sort((a, b) => {
+      const aStart = a.start_date || a.created_at?.split('T')[0] || '';
+      const aEnd = a.end_date || aStart;
+      const bStart = b.start_date || b.created_at?.split('T')[0] || '';
+      const bEnd = b.end_date || bStart;
+
+      // 1. 是否正在進行且日期包含今日
+      const aIsToday = aStart && aEnd && aStart <= todayStr && todayStr <= aEnd;
+      const bIsToday = bStart && bEnd && bStart <= todayStr && todayStr <= bEnd;
+      if (aIsToday && !bIsToday) return -1;
+      if (!aIsToday && bIsToday) return 1;
+
+      // 2. 狀態是否為「進行中」
+      const aIsActive = a.status === '進行中';
+      const bIsActive = b.status === '進行中';
+      if (aIsActive && !bIsActive) return -1;
+      if (!aIsActive && bIsActive) return 1;
+
+      // 3. 離今日日期最近（取 start_date 與今天的差值）
+      const aDist = aStart ? Math.abs(new Date(aStart).getTime() - todayTime) : Infinity;
+      const bDist = bStart ? Math.abs(new Date(bStart).getTime() - todayTime) : Infinity;
+      if (aDist !== bDist) return aDist - bDist;
+
+      return (b.created_at || '').localeCompare(a.created_at || '');
     });
   }, [allEvents]);
 
   const [channelName, setChannelName] = useState(() => {
-    return availableEvents[0]?.name || '一般現場';
+    return availableEvents[0]?.name || '';
   });
+
+  // 當市集活動載入或更新時，若當前選取的 channelName 不在可用活動中（或仍為一般現場），自動預設為最優先活動
+  useEffect(() => {
+    if (channelType === 'market' && availableEvents.length > 0) {
+      const exists = availableEvents.some(e => e.name === channelName);
+      if (!exists || channelName === '一般現場' || !channelName) {
+        setChannelName(availableEvents[0].name);
+      }
+    }
+  }, [availableEvents, channelType, channelName]);
 
   // 商品與其所有尺寸 SKU 的對應 Map
   const productSkusMap = useMemo(() => {
@@ -222,11 +262,14 @@ export default function PosView({
                 className="w-full sm:w-auto min-h-[48px] sm:min-h-[44px] bg-white border-2 border-rose-300 rounded-2xl px-4 py-2 text-sm sm:text-sm md:text-base font-black text-rose-700 shadow-sm focus:outline-none focus:border-rose-500"
               >
                 {availableEvents.length === 0 ? (
-                  <option value="一般現場">一般現場 (未指定場次)</option>
+                  <option value="" disabled>尚未建立市集活動 (請至「市集控管」建立)</option>
                 ) : (
-                  availableEvents.map(e => <option key={e.event_id} value={e.name}>{e.name}</option>)
+                  availableEvents.map(e => (
+                    <option key={e.event_id || e.name} value={e.name}>
+                      {e.name} {e.status === '進行中' ? '(進行中)' : ''}
+                    </option>
+                  ))
                 )}
-                <option value="一般現場">一般現場</option>
               </select>
             ) : (
               <select
@@ -512,7 +555,7 @@ export default function PosView({
           <div>
             <span className="text-xs font-black text-slate-600 block mb-1">收款方式：</span>
             <div className="grid grid-cols-3 gap-1.5 text-xs sm:text-sm font-black">
-              {['現金', 'LinePay', '街口', '轉帳', '公關贈送'].map(m => (
+              {['現金', 'LinePay', 'Apple Pay', '轉帳', '公關贈送'].map(m => (
                 <button
                   key={m}
                   type="button"

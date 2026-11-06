@@ -69,7 +69,7 @@ export default function EodModal({
   const stats = React.useMemo(() => {
     const valid = daySales.filter(s => s.status !== '已作廢');
     let totalRevenue = 0, totalCost = 0, totalItems = 0;
-    let pm = { "現金": 0, "LinePay": 0, "街口": 0, "轉帳": 0, "公關贈送": 0 };
+    let pm = { "現金": 0, "LinePay": 0, "Apple Pay": 0, "街口": 0, "轉帳": 0, "公關贈送": 0 };
     let owners = {};
 
     valid.forEach(s => {
